@@ -2,7 +2,7 @@
 
 """plot_histogram.py -- Plot a single column of an input text file as a histogram. 
 
-Usage: predict_class [-h] [-v] [--debug] [-o FILE] [--delimiter STRING][-b INTEGER] <textfile> <column>
+Usage: predict_class [-h] [-v] [--debug] [-o FILE] [--delimiter STRING] [-b INTEGER] <textfile> <column>
 
 Arguments:
     textfile (string)
