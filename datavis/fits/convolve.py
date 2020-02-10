@@ -2,7 +2,7 @@
 
 """ convolve.py -- Convolve sourceimage to a lower resolution image. Outputs the lower resolution image as a fits file.
 
-Usage: convolve [-h] [-v] [-o SAVELOC] (pixel | arcsec) <fitsfile> <init_res> <final_rez>
+Usage: convolve [-h] [-v] [-o SAVELOC] [--overwrite] (pixel | arcsec) <fitsfile> <init_res> <final_rez>
 
 Arguments:
     fitsfile (string)
@@ -13,9 +13,10 @@ Arguments:
     	Resolution of the desired image (FWHM, in arcsec).
 
 Options:
-    -h, --help                                  Show this screen
-    -v, --verbose                               Show extra information [default: False]     
-    -o SAVELOC, --out SAVELOC                   The output mask is saved here [default: ./convolved.fits]
+    -h, --help                          Show this screen
+    -v, --verbose                       Show extra information [default: False]     
+    -o SAVELOC, --out SAVELOC           The output mask is saved here [default: ./convolved.fits]
+    --overwrite                         Overwrite output file [default: False]
 
 Examples:
 """
@@ -29,6 +30,7 @@ import astropy.wcs as wcs
 
 def convolve(saveloc, fitsfile, initres, finalres,
             inputres_pixel=False, inputres_arcsec=True,
+            overwrite=False,
             verbose=False):
     # Check initial resolution is lower than final
     if initres > finalres:
@@ -42,6 +44,9 @@ def convolve(saveloc, fitsfile, initres, finalres,
     x = header['NAXIS2']
     y = header['NAXIS1']
     
+    highres   = initres
+    lowres   = finalres
+
     if inputres_arcsec:
         if inputres_pixel:
             sys.exit('Please input either pixel or arcsec as the input resolutions, not both.')
@@ -51,10 +56,8 @@ def convolve(saveloc, fitsfile, initres, finalres,
         pixelsizes = wcs.utils.proj_plane_pixel_scales(w)*60*60
         pixelsize  = pixelsizes[0]
         # FWHM of current image
-        highres   = initres
         FWHM_highres_pix = highres/pixelsize
-        # FWHM of desired resolution
-        lowres   = finalres 
+        # FWHM of desired resolution 
         FWHM_lowres_pix = lowres/pixelsize
         # FWHM calulated for the gaussian of convolution kernel
         FWHM_kernel_pix = np.sqrt(FWHM_lowres_pix**2 - FWHM_highres_pix**2)
@@ -83,7 +86,9 @@ def convolve(saveloc, fitsfile, initres, finalres,
               
     # saves as the fits file	
 
-    if os.path.isfile(saveloc):
+    if overwrite:
+        fits.writeto(saveloc, convolved, header,overwrite=True)
+    elif os.path.isfile(saveloc):
         print('******* ERROR *******')
         print(saveloc + ' already exists!')
         print('---------------------')
@@ -108,9 +113,11 @@ if __name__ == "__main__":
     finalres        = float(arguments['<final_rez>']) 
     inputres_pixel     = arguments['pixel']
     inputres_arcsec    = arguments['arcsec']
+    overwrite          = arguments['--overwrite']
 
     convolve(saveloc, fitsfile, initres, finalres, 
-            inputres_pixel=inputres_pixel, inputres_arcsec=inputres_arcsec, 
+            inputres_pixel=inputres_pixel, inputres_arcsec=inputres_arcsec,
+            overwrite=overwrite, 
             verbose=verbose)
 
 
