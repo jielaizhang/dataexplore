@@ -12,6 +12,7 @@ Example of how to get help on how to use scripts in command line:
 python convolve.py -h
 
 Anaconda install of python 3.6
+
 Required modules:
 docopt
 astropy
