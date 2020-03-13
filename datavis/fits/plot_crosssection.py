@@ -25,7 +25,8 @@ import numpy as np
 def plot_crosssection(fits_name,slicenumber,
                       direction='horizontal',saveloc='./crosssection.png',
                       horizline=False, vertline=False,
-                      gridoff=False):
+                      gridoff=False,
+                      title=False):
     d = fits.getdata(fits_name)
     if direction == 'horizontal':
         s = d[slicenumber,:]
@@ -45,6 +46,8 @@ def plot_crosssection(fits_name,slicenumber,
     if vertline:
         for i in vertline:
             plt.axvline(i,alpha=0.4)
+    if title:
+        plt.title(title)
     if saveloc:
         plt.savefig(saveloc)
     else:
