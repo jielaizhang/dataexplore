@@ -115,6 +115,9 @@ def calculate_FWHM(fitsfiles,verbose=False):
     # Run Source Extractor and Calculate Average FWHM one image at a time
     for f in fitsfiles:
 
+        # Print separator
+        print('==============================================')
+
         # Run Source Extractor on image
         try:
             command = "source-extractor %s %s %s %s %s %s %s %s" % (f,
