@@ -90,10 +90,9 @@ def create_temp_files_for_SourceExtractor(f_nnw,f_conv,f_params,
     fp.close()
     return None
 
-def remove_temp_files(nnw_name,conv_name,params_name):
-    os.remove(nnw_name)
-    os.remove(conv_name)
-    os.remove(params_name)
+def remove_temp_files(fs):
+    for f in fs:
+        os.remove(f)
     return None
 
 ####################### calculate_FWHM function #######################
@@ -152,7 +151,7 @@ def calculate_FWHM(fitsfiles,verbose=False):
         print('The Average FWHM (pixels) is : %.5f for file %s'%(FWHM_average,f))
 
     # Remove temporary files required for Source Extractor
-    remove_temp_files(nnw_name,conv_name,params_name)
+    remove_temp_files([nnw_name,conv_name,params_name,'./temp.cat'])
 
     # Print useful information if verbose
     if verbose:
