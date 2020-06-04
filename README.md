@@ -6,10 +6,10 @@ This repository is written in the vision of providing a set of standalone script
 There are three modules. `datastats`, `datavis`, `datafit`. `datastats` contain functions that calculate statistical properties of input images. `datavis` contains functions that help visualise input data, and is split into folders depending on the type of input data format: ascii, fits, txt. `datafit` contains functions that help fit the input data. 
 
 Example import command:
-from datavis.fits.convolve import convolve as dvfconv
+`from datavis.fits.convolve import convolve as dvfconv`
 
 Example of how to get help on how to use scripts in command line:
-python convolve.py -h
+`python convolve.py -h`
 
 Anaconda install of python 3.6
 
