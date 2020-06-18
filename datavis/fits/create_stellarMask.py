@@ -151,7 +151,7 @@ def clearit(fname):
 # ======= Other Functions =======
 #################################
 
-def run_SExtractor(image_name):
+def run_SExtractor(image_name,verbose=False,sextractorloc='/opt/local/bin/source-extractor'):
 
     'Create temporary directory'
     if not os.path.exists('tmp_source_extractor_files'):
