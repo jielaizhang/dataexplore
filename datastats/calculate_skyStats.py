@@ -6,7 +6,7 @@
     Standard deviation of x by x pixels's average values 
         (y boxes are placed randomly)
 
-Note that for using aplpy to plot location of randomly placed sky areas, the vmin and vmax for fits image is hard coded in right now. So if you get black png files, that's why. For randomly placed boxes, take in vmin, vmax command line options; but not for annuli! 
+Note that for using aplpy to plot location of randomly placed sky areas, the vmin and vmax for fits image is hard coded in right now. So if you get black png files, that's why. For randomly placed boxes, take in vmin, vmax command line options; but not for annuli! Should also write in a remove created files option. Need to update to be an importable module. 
 
 Required input 
     fitsimage - image for which background stats are desired.
@@ -230,7 +230,7 @@ def calculate_sky_box(fitsimage,image,total_mask,boxsize_pix,nboxes,vmin=4.25,vm
     # Start figure to plot up box locations
     fig = plt.figure(figsize=(48, 36))
     f1 = aplpy.FITSFigure(fitsimage,figure=fig)
-    f1.set_tick_labels_font(size='xx-small')
+    #f1.set_tick_labels_font(size='xx-small')
     f1.ticks.hide()
     f1.tick_labels.hide_x()
     f1.tick_labels.hide_y()
@@ -256,7 +256,7 @@ def calculate_sky_box(fitsimage,image,total_mask,boxsize_pix,nboxes,vmin=4.25,vm
         # Plot up location of box for display using show_contour
         display_mask = np.zeros((xlen,ylen))
         display_mask[row-int(boxsize_pix/2):row+int(boxsize_pix/2)+1,col-int(boxsize_pix/2):col+int(boxsize_pix/2)+1] = 1.0
-        CS = plt.contour(X, Y, display_mask,thickness=1.0,alpha=0.1,colors='red')
+        CS = plt.contour(X, Y, display_mask,linewidths=1.0,alpha=0.1,colors='red')
 
         # Measure average counts in this masked box
         counts = np.ma.mean(np.ma.masked_array(image_box,mask=mask_box))
@@ -348,7 +348,7 @@ def calculate_sky_annuli(fitsimage,image,total_mask,annulusparams,n_iterations):
     # Start figure to plot up annuli locations
     fig = plt.figure(figsize=(48, 36))
     f1 = aplpy.FITSFigure(fitsimage,figure=fig)
-    f1.set_tick_labels_font(size='xx-small')
+    #f1.set_tick_labels_font(size='xx-small')
     f1.ticks.hide()
     f1.tick_labels.hide_x()
     f1.tick_labels.hide_y()
@@ -387,7 +387,7 @@ def calculate_sky_annuli(fitsimage,image,total_mask,annulusparams,n_iterations):
         image_annuli[total_mask] = float('nan')
 
         # Plot up location annulus for display using show_contour
-        CS = plt.contour(X, Y, mask,thickness=1.0,alpha=0.1,colors='red')
+        CS = plt.contour(X, Y, mask,linewidths=1.0,alpha=0.1,colors='red')
 
         # Calculate average and number of pixels in average to array
         #counts = 3.*np.nanmedian(image_annuli) - 2.*np.nanmean(image_annuli)
@@ -408,7 +408,7 @@ def calculate_sky_annuli(fitsimage,image,total_mask,annulusparams,n_iterations):
 
     # Plot initial sky ellipse
     # Copy wcs to total_mask_name, and show initial ellipse contour
-    CS = plt.contour(X, Y, initial_annuli_mask_data,thickness=6.0,colors='green')
+    CS = plt.contour(X, Y, initial_annuli_mask_data,linewidths=6.0,colors='green')
 
     # Save figure to of annuli locations
     outname = './skyregionlocs.png'
@@ -475,7 +475,7 @@ def calculate_sky_annuli_alloverim(fitsimage,image,total_mask,annulusparams,n_it
     # Start figure to plot up annuli locations
     fig = plt.figure(figsize=(48, 36))
     f1 = aplpy.FITSFigure(fitsimage,figure=fig)
-    f1.set_tick_labels_font(size='xx-small')
+    #f1.set_tick_labels_font(size='xx-small')
     f1.ticks.hide()
     f1.tick_labels.hide_x()
     f1.tick_labels.hide_y()
@@ -514,7 +514,7 @@ def calculate_sky_annuli_alloverim(fitsimage,image,total_mask,annulusparams,n_it
         image_annuli[total_mask] = float('nan')
 
         # Plot up location annulus for display using show_contour
-        CS = plt.contour(X, Y, mask,thickness=1.0,alpha=0.1,colors='red')
+        CS = plt.contour(X, Y, mask,linewidths=1.0,alpha=0.1,colors='red')
 
         # Calculate average and number of pixels in average to array
         #counts = 3.*np.nanmedian(image_annuli) - 2.*np.nanmean(image_annuli)
@@ -535,7 +535,7 @@ def calculate_sky_annuli_alloverim(fitsimage,image,total_mask,annulusparams,n_it
 
     # Plot initial sky ellipse
     # Copy wcs to total_mask_name, and show initial ellipse contour
-    CS = plt.contour(X, Y, initial_annuli_mask_data,thickness=6.0,colors='green')
+    CS = plt.contour(X, Y, initial_annuli_mask_data,linewidths=6.0,colors='green')
 
     # Save figure to of annuli locations
     outname = './skyregionlocs.png'
@@ -595,7 +595,8 @@ if __name__=='__main__':
     seg_mask = copy.copy(grownsegmap)
     seg_mask[np.where(seg_mask>0)] = 1
     total_mask = (seg_mask | mask_input.astype('int'))
-    total_mask = total_mask.astype('Bool')
+    total_mask = total_mask == 0
+    total_mask = np.invert(total_mask)
     
     # Save total mask for reference
     total_mask_name = grownsegmapname = segname.split('segmap.fits')[0]+'total_mask.fits'
@@ -609,14 +610,12 @@ if __name__=='__main__':
     # Plot up total_mask_name as contour on fits image
     fig = plt.figure(figsize=(48, 36))
     f2 = aplpy.FITSFigure(fitsimage,figure=fig)
-    f2.set_tick_labels_font(size='xx-small')
     f2.ticks.hide()
     f2.tick_labels.hide_x()
     f2.tick_labels.hide_y()
     f2.axis_labels.hide()
     f2.show_grayscale(invert=True, stretch='linear', vmin=4.25, vmax=4.32)
-    # g-band ngc 2841: vmin=2.38, vmax=2.42
-    f2.show_contour(data=total_mask_name_withwcs,thickness=3.0,colors='MediumPurple')
+    f2.show_contour(data=total_mask_name_withwcs,linewidths=3.0,colors='MediumPurple')
     cont_name = './mask_contour.png'
     f2.save(cont_name)
     print(' ')
