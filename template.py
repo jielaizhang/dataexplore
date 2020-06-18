@@ -78,6 +78,11 @@ if __name__ == "__main__":
     # Determine save directory
     savedir = os.sep.join(saveloc.split(os.sep)[0:-1]) + os.sep
 
+    # Saving fits file
+    fits.writeto(output,stellar_mask) 
+    printme = f'SAVED  : {output}'
+    print(printme)
+
     # Plot
     fig	= plt.figure()
     ax	= fig.add_subplot(1,1,1)
