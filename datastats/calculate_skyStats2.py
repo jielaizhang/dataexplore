@@ -247,6 +247,10 @@ def calculate_stats_andPrint(image,mask,sky_counts,sky_counts_avg,pix_counts,ver
         printme = f'# STD     of sky box/annuli MEDIANS  : {sky_stdOfMed:.4f}'
         print_verbose_string(printme,verbose=verbose)
 
+        # Print More Stats: Average number of non-masked pixels in boxes/annuli:
+        printme = f'# Avg # unmasked pix in boxes/annuli : {np.average(pix_counts)}'
+        print_verbose_string(printme,verbose=verbose)
+
         # Global Stats
         print(' ')
         printme = f'# Average of all non-masked pixels   : {np.ma.average(image_masked):.4f}'
@@ -369,8 +373,126 @@ def calculate_sky_annuli(fitsimage,annulusparams,n_iterations,input_mask_file = 
     exitmsg = 'ERROR: sky calculations using sky annuli not implemented yet.'
     sys.exit(exitmsg)
 
-    if verbose:
-        print('#Number of attempts where average sky count in box/annuli was not finite: ',str(n_notfinite))
+    # Read in image and header
+    image,h = fits.getdata(fitsimage, header=True)
+
+    # Make stellar mask
+    stellar_mask                    = create_stellarMask(fitsimage)
+
+    # Combine with input_mask if input_mask_file supplied
+    total_mask_bool = combine_masks(stellar_mask,input_mask_file,verbose=verbose)  
+
+    # Plot total_mask as a contour on fits image
+    plot_contourOnImage(fitsimage,total_mask_bool,verbose=verbose)
+
+    # Calculate sky in input annulus
+    xc1,yc1,a1,b1,ang1,xc2,yc2,a2,b2,ang2 = read_annulusparams(annulusparams)
+    h    = fits.getheader(fitsimage)
+    xlen = int(h['NAXIS2'])
+    ylen = int(h['NAXIS1'])
+    mask = make_annulus_mask(xlen,ylen,xc1,yc1,a1,b1,ang1,xc2,yc2,a2,b2,ang2)
+    initial_annuli_mask_data = mask.copy()
+    image_annuli        = copy.copy(image)
+    image_annuli[mask]  = float('nan')     
+    image_annuli[total_mask_bool] = float('nan')
+    initial_annuli_name = 'annuli_input.fits'
+    fits.writeto(initial_annuli_name,image_annuli)
+    printme = 'SAVED  : {initial_annuli_name} (temporary)'
+    print_verbose_string(printme)
+    print('Average in input sky annulus is: ',np.nanmean(image_annuli))
+    print('Median in input sky annulus is : ',np.nanmedian(image_annuli))
+    print('Std in input sky annulus is    : ',np.nanstd(image_annuli))
+    print('Number of finite non masked pixels in input sky annulus: ',np.sum(np.isfinite(image_annuli)))
+
+    # Plonk some random annuli, calculate average of averages and std of averages
+    # Vary xc,yc within width of annuli randomly (move xc2,yc2 by same amount)
+    # AND vary a1 randomly while keeping a1-a2 constant, varations up to width of annuli
+    annuli_thickness = abs(a1-a2)/2.
+
+    # Start figure to plot up annuli locations
+    fig = plt.figure(figsize=(48, 36))
+    f1 = aplpy.FITSFigure(fitsimage,figure=fig)
+    f1.ticks.hide()
+    f1.tick_labels.hide_x()
+    f1.tick_labels.hide_y()
+    f1.axis_labels.hide()
+    interval = ZScaleInterval()
+    vmin,vmax = interval.get_limits(image)
+    f1.show_grayscale(invert=True, stretch='linear', vmin=vmin, vmax=vmax)
+    
+    sky_counts      = []
+    sky_counts_avg  = []
+    pix_counts      = []
+    n_counter       = 0
+    n_notfinite     = 0
+    xtomesh = np.arange(0, ylen, 1)
+    ytomesh = np.arange(0, xlen, 1)
+    X, Y    = np.meshgrid(xtomesh, ytomesh)
+    while n_counter < n_iterations:
+
+        # Choose X random values for xc,yc and a1
+        xc_shift = np.random.randint(low=-annuli_thickness,high=annuli_thickness)
+        yc_shift = np.random.randint(low=-annuli_thickness,high=annuli_thickness)
+        a1_shift = np.random.randint(low=-annuli_thickness,high=annuli_thickness)
+        new_xc1 = xc1+xc_shift
+        new_xc2 = xc2+xc_shift
+        new_yc1 = yc1+yc_shift
+        new_yc2 = yc2+yc_shift
+        new_a1  = a1+a1_shift
+        new_a2  = a2+a1_shift
+        new_b1  = (b1/a1)*(new_a1)
+        new_b2  = (b2/a2)*(new_a2) 
+
+        # Make mask for new annuli 
+        mask = make_annulus_mask(xlen,ylen,
+                                    new_xc1,new_yc1,new_a1,new_b1,ang1,
+                                    new_xc2,new_yc2,new_a2,new_b2,ang2)
+        image_annuli        = copy.copy(image)
+        image_annuli[mask]  = float('nan')     
+        image_annuli[total_mask_bool] = float('nan')
+
+        # Plot up location annulus for display using show_contour
+        CS = plt.contour(X, Y, mask,linewidths=1.0,alpha=0.1,colors='red')
+
+        # Calculate average and number of pixels in average to array
+        #counts = 3.*np.nanmedian(image_annuli) - 2.*np.nanmean(image_annuli)
+        counts_avg  = np.nanmean(image_annuli)
+        counts      = np.nanmedian(image_annuli)
+
+        # Add average to sky_counts if finite
+        # Also increment n_counter
+        # Else increment n_notfinite
+        if np.isfinite(counts):
+            sky_counts.append(counts)
+            sky_counts_avg.append(counts_avg)
+            pix_counts.append(np.sum(np.isfinite(image_annuli)))
+            n_counter += 1
+        else:
+            n_notfinite += 1
+        
+        # Increment counter
+        n_counter += 1
+
+    # Plot initial sky ellipse
+    # Copy wcs to total_mask_name, and show initial ellipse contour
+    CS = plt.contour(X, Y, initial_annuli_mask_data,linewidths=6.0,colors='green')
+
+    # Save figure to of annuli locations
+    outname = './skyregionlocs.png'
+    f1.save(outname)
+    printme=f'SAVED  : {outname}'
+    print(printme)
+
+    # Clear temporary files
+    clearit(initial_annuli_name)
+ 
+    # Print useful information
+    print_verbose_string(f'Number of annuli placed randomly is: {n_counter}',verbose=verbose)
+    print_verbose_string(f'#Number of attempts where average sky count in box/annuli was not finite: {str(n_notfinite)}',verbose=verbose)
+
+    sky,sky_error,sky_pixel_std = calculate_stats_andPrint(image,total_mask_bool,sky_counts,sky_counts_avg,pix_counts,verbose=verbose)
+
+    return sky, sky_error, sky_pixel_std
 
 def calculate_sky_annuli_allover(fitsimage,annulusparams,n_iterations,input_mask_file = False,verbose=False):
     '''Place n_iterations number of elliptical annuli randomly in image with total_mask.
