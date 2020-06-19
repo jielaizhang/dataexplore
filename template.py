@@ -39,12 +39,16 @@ def print_verbose_string(printme,verbose=False,underscores=False):
     if verbose:
         if underscores:
             print("-" * len(f"VERBOSE: {printme}"),file=sys.stdout)
+            print(f"VERBOSE: {printme}",file=sys.stdout
+            print("-" * len(f"VERBOSE: {printme}"),file=sys.stdout)
         else:
             print(f"VERBOSE: {printme}",file=sys.stdout)
 
 def print_debug_string(printme,debugmode=False,underscores=False):
     if debugmode:
         if underscores:
+            print("-" * len(f"DEBUG  : {printme}"),file=sys.stdout)
+            print(f"DEBUG  : {printme}",file=sys.stdout)
             print("-" * len(f"DEBUG  : {printme}"),file=sys.stdout)
         else:
             print(f"DEBUG  : {printme}",file=sys.stdout)
