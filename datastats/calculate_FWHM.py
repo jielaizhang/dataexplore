@@ -9,7 +9,9 @@ Options:
     -v, --verbose                               Show extra information [default: False]      
 
 Examples:
-    python calculate_FWHM.py -v one.fits two.fits 
+    bash: python calculate_FWHM.py -v one.fits two.fits 
+    python: from datastats.calculate_FWHM import calculate_FWHM
+            FWHMs = calculate_FWHM(fitsfiles,verbose=False|True)
 """
 
 import docopt, os
@@ -112,6 +114,8 @@ def calculate_FWHM(fitsfiles,verbose=False):
     else:
         VERBOSE_TYPE = 'QUIET'
 
+    FWHMs = []
+
     # Run Source Extractor and Calculate Average FWHM one image at a time
     for f in fitsfiles:
 
@@ -152,6 +156,7 @@ def calculate_FWHM(fitsfiles,verbose=False):
         # Calculate Average FWHM and print
         FWHM_average = np.average(df_stars['FWHM_IMAGE'])
         print('The Average FWHM (pixels) is : %.5f for file %s'%(FWHM_average,f))
+        FWHMs.append(FWHM_average)
 
     # Remove temporary files required for Source Extractor
     remove_temp_files([nnw_name,conv_name,params_name,'./temp.cat'])
@@ -160,7 +165,7 @@ def calculate_FWHM(fitsfiles,verbose=False):
     if verbose:
         print('\nCLASS_STAR  1=star\nEllipticity 0=round')
     
-    return None
+    return FWHMs
 
 ####################### BODY OF PROGRAM STARTS HERE ########################
 
@@ -175,4 +180,4 @@ if __name__ == "__main__":
     verbose     = arguments['--verbose']
     
     # Calculate
-    calculate_FWHM(fitsfiles,verbose=verbose)
+    _ = calculate_FWHM(fitsfiles,verbose=verbose)
