@@ -55,25 +55,9 @@ def clearit(fname):
         os.remove(fname)
     return None
 
-############################################################################
-####################### BODY OF PROGRAM STARTS HERE ########################
-############################################################################
-
-if __name__ == "__main__":
-
-    # Read in input arguments
-    arguments       = docopt.docopt(__doc__)
-    verbose         = arguments['--verbose']
-    debugmode       = arguments['--debug']
-    if debugmode:
-        print(arguments)   
-    saveloc         = arguments['--out']
-    input_add       = arguments['add']
-    input_subtract  = arguments['subtract']
-    blah            = arguments['<blah>']
-    xyaxislims      = arguments['--boundonaxis']
-    if xyaxislims:
-        xmin,xmax,ymin,ymax = np.array(xyaxislims.split(',')).astype(np.float)
+##############################################################
+####################### Main Function ########################
+##############################################################
 
     # Determine save directory
     savedir = os.sep.join(saveloc.split(os.sep)[0:-1]) + os.sep
@@ -98,3 +82,26 @@ if __name__ == "__main__":
             ymax = ax.get_ylim()[1]
         plt.ylim([ymin,ymax])
         plt.xlim([xmin,xmax])
+
+
+############################################################################
+####################### BODY OF PROGRAM STARTS HERE ########################
+############################################################################
+
+if __name__ == "__main__":
+
+    # Read in input arguments
+    arguments       = docopt.docopt(__doc__)
+    verbose         = arguments['--verbose']
+    debugmode       = arguments['--debug']
+    if debugmode:
+        print(arguments)   
+    saveloc         = arguments['--out']
+    input_add       = arguments['add']
+    input_subtract  = arguments['subtract']
+    blah            = arguments['<blah>']
+    xyaxislims      = arguments['--boundonaxis']
+    if xyaxislims:
+        xmin,xmax,ymin,ymax = np.array(xyaxislims.split(',')).astype(np.float)
+
+
