@@ -39,13 +39,13 @@ Example:
     python calculate_skyStats.py -v --annulusallover 500,500,150,150,500,500,200,200 -n 100 fitsimage.fits
     Python:
     from datastats.calculate_skyStats2 import calculate_skyStats
-    calculate_skyStats( fitsimage, 
-                        place_boxes          = False|True, 
-                        place_annuli         = False|True, 
-                        place_annuli_allover = False|True,
-                        n_iterations         = 100 (or some other number),
-                        input_mask_file      = False|'./mask.fits',
-                        verbose = False|True, debugmode = False|True)
+    sky, sky_error, sky_pixel_variance = calculate_skyStats( fitsimage, 
+                                                             place_boxes          = False|True, 
+                                                             place_annuli         = False|True, 
+                                                             place_annuli_allover = False|True,
+                                                             n_iterations         = 100 (or some other number),
+                                                             input_mask_file      = False|'./mask.fits',
+                                                             verbose = False|True, debugmode = False|True)
 """
 
 import docopt
