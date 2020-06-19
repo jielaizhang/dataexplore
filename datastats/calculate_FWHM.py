@@ -8,12 +8,12 @@ Options:
     -h, --help                  Show this screen
     -q, --quiet                 Quiet mode, suppress printout FWHM measured.
     -v, --verbose               Show extra information [default: False]     
-    -s LOC, --SExtractor LOC    Location of source extractor [default: /opt/local/bin/source-extractor] 
+    -s LOC, --sextractor LOC    Location of source extractor [default: /opt/local/bin/source-extractor] 
 
 Examples:
     bash: python calculate_FWHM.py -v one.fits two.fits 
     python: from datastats.calculate_FWHM import calculate_FWHM
-            FWHMs = calculate_FWHM(fitsfiles,verbose=False|True)
+            FWHMs = calculate_FWHM(fitsfiles,sextractorloc='/opt/local/bin/source-extractor,verbose=False|True)
 """
 
 import docopt, os
@@ -191,7 +191,7 @@ if __name__ == "__main__":
     # Non-mandatory options without arguments
     quietmode       = arugments['--quiet']
     verbose         = arguments['--verbose']
-    sextractorloc   = arguments['--SExtractor']
+    sextractorloc   = arguments['--sextractor']
     
     # Calculate
     _ = calculate_FWHM(fitsfiles,sextractorloc=sextractorloc,verbose=verbose,quietmode=quietmode)

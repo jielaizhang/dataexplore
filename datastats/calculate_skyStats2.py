@@ -19,13 +19,14 @@ Required input
     fitsimage - image for which background stats are desired.
 
 Usage:
-    calculate_skystats.py [-h] [-q] [-v] [--debug] [-b STRING] [-a STRING] [--annulusallover STRING] [-n INT] [-m FILE] <fitsimage>
+    calculate_skystats.py [-h] [-q] [-v] [--debug] [--sextractorloc LOC] [-b STRING] [-a STRING] [--annulusallover STRING] [-n INT] [-m FILE] <fitsimage>
 
 Options:
     -h, --help                          Print this screen.
     -q, --quietmode                     Do not print calculated sky values [default: False]
     -v, --verbose                       Print extra information [default: False]
     --debug                             Print extra extra information and save extra files [default: False]
+    --sextractorloc LOC                 Source-extractor path [default: /opt/local/bin/source-extractor]
     -b STRING, --box STRING             Input box parameters: size of box (pixels), number of random boxes to be placed. E.g. 10,100.
     -a STRING, --annulus STRING         Select annulus with params 'xc1,yc1,a1,b1,ang1,xc2,yc2,a2,b2,ang2', angle in degrees, counter clockwise rotation; place random annuli around inital specs.
     --annulusallover STRING             As above, but when placing annulus around galaxy, let it move around a little more than above option.
@@ -282,7 +283,7 @@ def calculate_stats_andPrint(image,mask,sky_counts,sky_counts_avg,pix_counts,ver
 # ======= Sky Calculation Functions =======
 ###########################################
 
-def calculate_sky_box(fitsimage, boxsize_pix, n_iterations, input_mask_file=False, checkims=False, verbose=False, quietmode=False):
+def calculate_sky_box(fitsimage, boxsize_pix, n_iterations, input_mask_file=False, checkims=False, sextractorloc='/opt/local/bin/source-extractor',verbose=False, quietmode=False):
     '''Place n_iterations number of boxsize_pix sized boxes randomly in image with total_mask, 
     Output 
     sky         = average of median of boxes 
@@ -302,7 +303,7 @@ def calculate_sky_box(fitsimage, boxsize_pix, n_iterations, input_mask_file=Fals
     image,h = fits.getdata(fitsimage, header=True)
 
     # Make stellar mask
-    stellar_mask                    = create_stellarMask(fitsimage)
+    stellar_mask                    = create_stellarMask(fitsimage,sextractorloc=sextractorloc)
 
     # Combine with input_mask if input_mask_file supplied
     total_mask_bool = combine_masks(stellar_mask,input_mask_file,verbose=verbose)  
@@ -512,7 +513,7 @@ def calculate_sky_annuli(fitsimage,annulusparams,n_iterations,input_mask_file = 
 
     return sky, sky_error, sky_pixel_std
 
-def calculate_sky_annuli_allover(fitsimage,annulusparams,n_iterations,input_mask_file = False,checkims=False,verbose=False, quietmode=False):
+def calculate_sky_annuli_allover(fitsimage,annulusparams,n_iterations,input_mask_file = False,checkims=False,sextractorloc='/opt/local/bin/source-extractor',verbose=False, quietmode=False):
     '''Place n_iterations number of elliptical annuli randomly in image with total_mask.
     Annuli placed is allowed to move around more than the --annuli option.
     Output 
@@ -531,6 +532,7 @@ def calculate_sky_annuli_allover(fitsimage,annulusparams,n_iterations,input_mask
 ###############################
 
 def calculate_skyStats( fitsimage, 
+                        sextractorloc        = '/opt/local/bin/source-extractor',
                         place_boxes          = False, 
                         place_annuli         = False, 
                         place_annuli_allover = False,
@@ -572,7 +574,7 @@ def calculate_skyStats( fitsimage,
     # Standard deviation of these medians
     if place_boxes:
         boxsize_pix     = int(place_boxes)
-        sky, sky_error, sky_pixel_variance = calculate_sky_box(fitsimage,boxsize_pix, n_iterations, input_mask_file = input_mask_file, checkims=checkims, verbose=verbose, quietmode=quietmode)
+        sky, sky_error, sky_pixel_variance = calculate_sky_box(fitsimage,boxsize_pix, n_iterations, input_mask_file = input_mask_file, checkims=checkims, sextractorloc=sextractorloc, verbose=verbose, quietmode=quietmode)
 
     # ===== --annulus =====
     # Place X random X pixel elliptical annuli 
@@ -580,7 +582,7 @@ def calculate_skyStats( fitsimage,
     # Standard deviation of these medians
     if place_annuli:
         annulusparams = place_annuli
-        sky, sky_error, sky_pixel_variance = calculate_sky_annuli(fitsimage,annulusparams,n_iterations,input_mask_file=input_mask_file,checkims=checkims,verbose=verbose, quietmode=quietmode)
+        sky, sky_error, sky_pixel_variance = calculate_sky_annuli(fitsimage,annulusparams,n_iterations,input_mask_file=input_mask_file,checkims=checkims,sextractorloc=sextractorloc, verbose=verbose, quietmode=quietmode)
 
     # ===== --annulusallover =====
     # Place X random X pixel elliptical annuli 
@@ -588,7 +590,7 @@ def calculate_skyStats( fitsimage,
     # Standard deviation of these medians
     if place_annuli_allover:
         annulusparams = place_annuli_allover
-        sky, sky_error, sky_pixel_variance = calculate_sky_annuli_allover(fitsimage,annulusparams,n_iterations,input_mask_file=input_mask_file,checkims=checkims,verbose=verbose, quietmode=quietmode)
+        sky, sky_error, sky_pixel_variance = calculate_sky_annuli_allover(fitsimage,annulusparams,n_iterations,input_mask_file=input_mask_file,checkims=checkims,sextractorloc=sextractorloc,verbose=verbose, quietmode=quietmode)
 
     # ===== no option set, just calculate stats for all unmasked pixels =====
 
@@ -609,6 +611,7 @@ if __name__=='__main__':
     quietmode            = arguments['<quietmode>']
     verbose              = arguments['--verbose']
     debugmode            = arguments['--debug']
+    sextractorloc        = arguments['--sextractorloc']
     place_boxes          = arguments['--box']
     place_annuli         = arguments['--annulus']    
     place_annuli_allover = arguments['--annulusallover']
@@ -620,6 +623,7 @@ if __name__=='__main__':
         print(arguments)
 
     calculate_skyStats(  fitsimage, 
+                            sextractorloc        = sextractorloc,
                             place_boxes          = place_boxes, 
                             place_annuli         = place_annuli, 
                             place_annuli_allover = place_annuli_allover,

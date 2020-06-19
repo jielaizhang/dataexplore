@@ -3,7 +3,7 @@
 #!/usr/bin/env python
 
 """ subtract_image_astro.py -- Input two visible wavelength astronomical fits files, image subtraction is carried out using hotpants. 
-Usage: subtract_image_astro.py [-h] [-v] [--debug] [-s SAVELOC] [-o] <fitsfile1> <fitsfile2>
+Usage: subtract_image_astro.py [-h] [-v] [--debug] [-s SAVELOC] [-o] [--sextractor LOC] <fitsfile1> <fitsfile2>
 
 Arguments:
     fitsfile1 (string)
@@ -14,7 +14,8 @@ Options:
     -v, --verbose                           Show extra information [default: False]     
     --debug                                 Output more for debugging [default: False]
     -s SAVELOC, --save SAVELOC              Save subtraction image as fits file at this path. If input, badpix map will be saved at saveloc_badpixmap.fits.
-    -o, --overwrite                         Overwrite subtraction and badpixmap if it exists, and saveloc specified.     
+    -o, --overwrite                         Overwrite subtraction and badpixmap if it exists, and saveloc specified. 
+    --sextractor LOC                          Indicate location of source extractor for FWHM and sky calculations. [default: /opt/local/bin/source-extractor]
 
 Examples:
     bash: python subtract_image_astro file1.fits file2.fits --overwrite --save file1_sub_file2.fits 
@@ -77,7 +78,7 @@ def ifexistexit(fname):
 ####################### Main Function ########################
 ##############################################################
 
-def subtract_image_astro(fitsfile1,fitsfile2,saveloc=False,overwrite=False,verbose=False,debugmode=False):
+def subtract_image_astro(fitsfile1,fitsfile2,saveloc=False,overwrite=False,sextractorloc='/opt/local/bin/source-extractor',verbose=False,debugmode=False):
 
     # Specify output image, system exit if image already exists (do not overwrite)
     # If saveloc provided, also set location of badpixmap output 
@@ -102,7 +103,7 @@ def subtract_image_astro(fitsfile1,fitsfile2,saveloc=False,overwrite=False,verbo
 
     # Get parameters required by hotpants: FWHM_larger
     print_verbose_string('### Calculating FWHM of two input images ###',verbose=verbose,underscores=True)
-    [FWHM1,FWHM2]   = calculate_FWHM([fitsfile1,fitsfile2],quietmode=quietmode,verbose=verbose)
+    [FWHM1,FWHM2]   = calculate_FWHM([fitsfile1,fitsfile2],sextractorloc=sextractorloc,quietmode=quietmode,verbose=verbose)
     FWHM_larger     = max([FWHM1,FWHM2])
 
     # Get parameters required by hotpants: sky values of two images
@@ -111,8 +112,8 @@ def subtract_image_astro(fitsfile1,fitsfile2,saveloc=False,overwrite=False,verbo
     naxis1,naxis2                         = np.shape(d)
     box_size                              = int(min(naxis1,naxis2)/6.)
     print_debug_string(f'Box size for calculating sky: {box_size}',debugmode=debugmode)
-    sky1, sky_error1, sky_pixel_variance1 = calculate_skyStats(fitsfile1, place_boxes = box_size, n_iterations = 10, verbose=verbose, debugmode=debugmode, quietmode=quietmode)
-    sky2, sky_error2, sky_pixel_variance2 = calculate_skyStats(fitsfile2, place_boxes = box_size, n_iterations = 10, verbose=verbose, debugmode=debugmode, quietmode=quietmode)    
+    sky1, sky_error1, sky_pixel_variance1 = calculate_skyStats(fitsfile1, place_boxes = box_size, n_iterations = 10, sextractorloc=sextractorloc, verbose=verbose, debugmode=debugmode, quietmode=quietmode)
+    sky2, sky_error2, sky_pixel_variance2 = calculate_skyStats(fitsfile2, place_boxes = box_size, n_iterations = 10, sextractorloc=sextractorloc, verbose=verbose, debugmode=debugmode, quietmode=quietmode)    
 
     # Get parameters required by hotpants: actual input parameters calculated via FWHM_larger, and sky values of input images
     tl  = sky1-5*sky_pixel_variance1
@@ -166,5 +167,6 @@ if __name__ == "__main__":
 
     saveloc         = arguments['--save']
     overwrite       = arguments['--overwrite']
+    sextractorloc   = arguments['--sextractor']
 
-    _ = subtract_image_astro(fitsfile1,fitsfile2,saveloc=saveloc,overwrite=overwrite,verbose=verbose,debugmode=debugmode)
+    _ = subtract_image_astro(fitsfile1,fitsfile2,saveloc=saveloc,overwrite=overwrite,sextractorloc=sextractorloc,verbose=verbose,debugmode=debugmode)
