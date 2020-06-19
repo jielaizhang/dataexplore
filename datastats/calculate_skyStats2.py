@@ -40,9 +40,9 @@ Example:
     Python:
     from datastats.calculate_skyStats2 import calculate_skyStats
     sky, sky_error, sky_pixel_variance = calculate_skyStats( fitsimage, 
-                                                             place_boxes          = False|True, 
-                                                             place_annuli         = False|True, 
-                                                             place_annuli_allover = False|True,
+                                                             place_boxes          = False|boxsize, 
+                                                             place_annuli         = False|'xc1,yc1,a1,b1,ang1,xc2,yc2,a2,b2,ang2', 
+                                                             place_annuli_allover = False|'xc1,yc1,a1,b1,ang1,xc2,yc2,a2,b2,ang2',
                                                              n_iterations         = 100 (or some other number),
                                                              input_mask_file      = False|'./mask.fits',
                                                              verbose = False|True, debugmode = False|True)
