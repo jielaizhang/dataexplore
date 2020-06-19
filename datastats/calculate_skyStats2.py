@@ -32,10 +32,20 @@ Options:
     -m FILE, --mask FILE                Input mask to be combined with program calculated stellar mask. 
 
 Example:
+    Bash:
     python calculate_skyStats.py -v -b 10 -n 100 fitsimage.fits
     python calculate_skyStats.py -v -b 10 -n 100 -m extra_mask.fits fitsimage.fits
     python calculate_skyStats.py -v --annulus 500,500,150,150,500,500,200,200 -n 100 fitsimage.fits
     python calculate_skyStats.py -v --annulusallover 500,500,150,150,500,500,200,200 -n 100 fitsimage.fits
+    Python:
+    from datastats.calculate_skyStats2 import calculate_skyStats
+    calculate_skyStats( fitsimage, 
+                        place_boxes          = False|True, 
+                        place_annuli         = False|True, 
+                        place_annuli_allover = False|True,
+                        n_iterations         = 100 (or some other number),
+                        input_mask_file      = False|'./mask.fits',
+                        verbose = False|True, debugmode = False|True)
 """
 
 import docopt
