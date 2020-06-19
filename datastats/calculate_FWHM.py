@@ -2,11 +2,13 @@
 
 """calculate_FWHM.py -- read in fits files and calculate the average FWHM of the image by using source extractor. Conditions for which sources to include in the average calculation can be entered as options. 
 
-Usage: calculate_FWHM [-h] [-v] <fitsfiles>...
+Usage: calculate_FWHM [-q] [-h] [-v] [-s LOC] <fitsfiles>...
 
 Options:
-    -h, --help                                  Show this screen
-    -v, --verbose                               Show extra information [default: False]      
+    -h, --help                  Show this screen
+    -q, --quiet                 Quiet mode, suppress printout FWHM measured.
+    -v, --verbose               Show extra information [default: False]     
+    -s LOC, --SExtractor LOC    Location of source extractor [default: /opt/local/bin/source-extractor] 
 
 Examples:
     bash: python calculate_FWHM.py -v one.fits two.fits 
@@ -25,6 +27,7 @@ import numpy as np
 conv_name = "./temp_default.conv"
 nnw_name = "./temp_default.nnw"
 params_name = "./temp_params.txt"
+config_name = "./temp_default.sex"
 
 f_conv = '''CONV NORM
 # 3x3 ``all-ground'' convolution mask with FWHM = 2 pixels.
@@ -99,10 +102,14 @@ def remove_temp_files(fs):
 
 ####################### calculate_FWHM function #######################
 
-def calculate_FWHM(fitsfiles,verbose=False):
+def calculate_FWHM(fitsfiles,sextractorloc='/opt/local/bin/source-extractor',verbose=False,quietmode=False):
 
     # Create temporary files required for Source Extractor
     create_temp_files_for_SourceExtractor(f_nnw,f_conv,f_params,nnw_name,conv_name,params_name)
+
+    # Create temporary default.sex file
+    command = sextractorloc+' -d > '+ config_name # config name comes from global parameter set above.
+    subprocess.call(command,shell=True)
 
     # Print useful information if verbose
     if verbose:
@@ -120,11 +127,13 @@ def calculate_FWHM(fitsfiles,verbose=False):
     for f in fitsfiles:
 
         # Print separator
-        print('==============================================')
+        if verbose:
+            print('==============================================')
 
         # Run Source Extractor on image
         try:
-            command = "source-extractor %s %s %s %s %s %s %s %s" % (f,
+            command = sextractorloc+" %s %s %s %s %s %s %s %s %s" % (f,
+                                         '-c '+config_name,
                                          '-CATALOG_NAME ./temp.cat',
                                          '-CATALOG_TYPE ASCII_HEAD',
                                          '-PARAMETERS_NAME '+params_name,
@@ -133,9 +142,11 @@ def calculate_FWHM(fitsfiles,verbose=False):
                                          '-MAG_ZEROPOINT 25.0',
                                          '-VERBOSE_TYPE '+VERBOSE_TYPE
                                          )
-            print('Executing command: %s\n' % command)
+            if verbose:
+                print('Executing command: %s\n' % command)
             rval = subprocess.run(command.split(), check=True)
-            print('Success!')
+            if verbose:
+                print('Success!')
         except subprocess.CalledProcessError as err:
             print('\nCould not run SExtractor with exit error %s\n'%err)
             print('Command used:\n%s\n'%command)
@@ -155,11 +166,12 @@ def calculate_FWHM(fitsfiles,verbose=False):
         
         # Calculate Average FWHM and print
         FWHM_average = np.average(df_stars['FWHM_IMAGE'])
-        print('The Average FWHM (pixels) is : %.5f for file %s'%(FWHM_average,f))
+        if not quietmode:
+            print('The Average FWHM (pixels) is : %.5f for file %s'%(FWHM_average,f))
         FWHMs.append(FWHM_average)
 
     # Remove temporary files required for Source Extractor
-    remove_temp_files([nnw_name,conv_name,params_name,'./temp.cat'])
+    remove_temp_files([nnw_name,conv_name,params_name,config_name,'./temp.cat'])
 
     # Print useful information if verbose
     if verbose:
@@ -177,7 +189,9 @@ if __name__ == "__main__":
     fitsfiles = arguments['<fitsfiles>']
 
     # Non-mandatory options without arguments
-    verbose     = arguments['--verbose']
+    quietmode       = arugments['--quiet']
+    verbose         = arguments['--verbose']
+    sextractorloc   = arguments['--SExtractor']
     
     # Calculate
-    _ = calculate_FWHM(fitsfiles,verbose=verbose)
+    _ = calculate_FWHM(fitsfiles,sextractorloc=sextractorloc,verbose=verbose,quietmode=quietmode)

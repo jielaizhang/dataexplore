@@ -13,16 +13,17 @@
 
     Option to input additional mask (mask should be zeros and ones; zero pixels are not masked, one pixels are masked). Important to input a mask that masks out the galaxy and its extended low surface brightness features!
 
-    Output are ./mask_contour.png and ./skyregionlocs.png (overwrites)
+    Option to output checkims: originalfilepath_skymask_contour.png and originalfilepath_skyregionlocs.png (overwrites)
 
 Required input 
     fitsimage - image for which background stats are desired.
 
 Usage:
-    calculate_skystats.py [-h] [-v] [--debug] [-b STRING] [-a STRING] [--annulusallover STRING] [-n INT] [-m FILE] <fitsimage>
+    calculate_skystats.py [-h] [-q] [-v] [--debug] [-b STRING] [-a STRING] [--annulusallover STRING] [-n INT] [-m FILE] <fitsimage>
 
 Options:
     -h, --help                          Print this screen.
+    -q, --quietmode                     Do not print calculated sky values [default: False]
     -v, --verbose                       Print extra information [default: False]
     --debug                             Print extra extra information and save extra files [default: False]
     -b STRING, --box STRING             Input box parameters: size of box (pixels), number of random boxes to be placed. E.g. 10,100.
@@ -30,6 +31,7 @@ Options:
     --annulusallover STRING             As above, but when placing annulus around galaxy, let it move around a little more than above option.
     -n INT, --niterations INT           Input number of random annuli to be placed. (not used for boxes). [default: 100]
     -m FILE, --mask FILE                Input mask to be combined with program calculated stellar mask. 
+    -c, --checkims                      Output two check images for masking and sky regions used. [default: False]
 
 Example:
     Bash:
@@ -187,7 +189,7 @@ def plot_contourOnImage(fitsfile,total_mask_bool,verbose=False):
     vmin,vmax = interval.get_limits(image)
     f2.show_grayscale(invert=True, stretch='linear', vmin=vmin, vmax=vmax)
     f2.show_contour(data=total_mask_fitsWithWCS,linewidths=3.0,colors='MediumPurple')
-    cont_name = './mask_contour.png'
+    cont_name = fitsfile.replace('.fits','_skymask_contour.png')
     f2.save(cont_name)
     print(f'SAVED  : {cont_name}')
 
@@ -198,7 +200,7 @@ def plot_contourOnImage(fitsfile,total_mask_bool,verbose=False):
 
     return None
 
-def calculate_stats_andPrint(image,mask,sky_counts,sky_counts_avg,pix_counts,verbose=False):
+def calculate_stats_andPrint(image,mask,sky_counts,sky_counts_avg,pix_counts,verbose=False, quietmode=False):
 
     image_masked = np.ma.masked_array(image,mask=mask)
     
@@ -206,19 +208,20 @@ def calculate_stats_andPrint(image,mask,sky_counts,sky_counts_avg,pix_counts,ver
     sky_error = np.std(np.array(sky_counts))
     sky_pixel_std = np.ma.std(image_masked)
 
-    printme = '------------------'
-    print(printme)
-    printme = 'PRINTING SKY STATS'
-    print(printme)
-    printme = '------------------'
-    print(printme)
+    if not quietmode:
+        printme = '------------------'
+        print(printme)
+        printme = 'PRINTING SKY STATS'
+        print(printme)
+        printme = '------------------'
+        print(printme)
 
-    printme = f'\n# SKY: Average of sky box/annuli medians      : {sky:.4f}'
-    print(printme)
-    printme = f'# SKY_ERROR: STD of sky box/annuli medians    : {sky_error:.4f}'
-    print(printme)
-    printme = f'# SKY_PIXEL_STD: STD of all non-masked pixels : {sky_pixel_std:.4f}\n'
-    print(printme) 
+        printme = f'\n# SKY: Average of sky box/annuli medians      : {sky:.4f}'
+        print(printme)
+        printme = f'# SKY_ERROR: STD of sky box/annuli medians    : {sky_error:.4f}'
+        print(printme)
+        printme = f'# SKY_PIXEL_STD: STD of all non-masked pixels : {sky_pixel_std:.4f}\n'
+        print(printme) 
 
     # Calculate other things for verbose printing
     if verbose:
@@ -279,7 +282,7 @@ def calculate_stats_andPrint(image,mask,sky_counts,sky_counts_avg,pix_counts,ver
 # ======= Sky Calculation Functions =======
 ###########################################
 
-def calculate_sky_box(fitsimage,boxsize_pix,n_iterations, input_mask_file = False, verbose=False):
+def calculate_sky_box(fitsimage, boxsize_pix, n_iterations, input_mask_file=False, checkims=False, verbose=False, quietmode=False):
     '''Place n_iterations number of boxsize_pix sized boxes randomly in image with total_mask, 
     Output 
     sky         = average of median of boxes 
@@ -305,7 +308,8 @@ def calculate_sky_box(fitsimage,boxsize_pix,n_iterations, input_mask_file = Fals
     total_mask_bool = combine_masks(stellar_mask,input_mask_file,verbose=verbose)  
 
     # Plot total_mask as a contour on fits image
-    plot_contourOnImage(fitsimage,total_mask_bool,verbose=verbose)
+    if checkims:
+        plot_contourOnImage(fitsimage,total_mask_bool,verbose=verbose)
 
     # Set boxes to be placed not too near edge
     xmin = 1.5*boxsize_pix
@@ -314,21 +318,22 @@ def calculate_sky_box(fitsimage,boxsize_pix,n_iterations, input_mask_file = Fals
     ymax = float(h['NAXIS2'])-1.5*boxsize_pix
 
     # Start figure to plot up box locations
-    fig = plt.figure(figsize=(48, 36))
-    f1 = aplpy.FITSFigure(fitsimage,figure=fig)
-    f1.ticks.hide()
-    f1.tick_labels.hide_x()
-    f1.tick_labels.hide_y()
-    f1.axis_labels.hide()
-    interval = ZScaleInterval()
-    vmin,vmax = interval.get_limits(image)
-    f1.show_grayscale(invert=True, stretch='linear', vmin=vmin, vmax=vmax)    
+    if checkims:
+        fig = plt.figure(figsize=(48, 36))
+        f1 = aplpy.FITSFigure(fitsimage,figure=fig)
+        f1.ticks.hide()
+        f1.tick_labels.hide_x()
+        f1.tick_labels.hide_y()
+        f1.axis_labels.hide()
+        interval = ZScaleInterval()
+        vmin,vmax = interval.get_limits(image)
+        f1.show_grayscale(invert=True, stretch='linear', vmin=vmin, vmax=vmax)    
 
-    xlen = int(h['NAXIS2'])
-    ylen = int(h['NAXIS1'])
-    xtomesh = np.arange(0, ylen, 1)
-    ytomesh = np.arange(0, xlen, 1)
-    X, Y    = np.meshgrid(xtomesh, ytomesh)
+        xlen = int(h['NAXIS2'])
+        ylen = int(h['NAXIS1'])
+        xtomesh = np.arange(0, ylen, 1)
+        ytomesh = np.arange(0, xlen, 1)
+        X, Y    = np.meshgrid(xtomesh, ytomesh)
     
     while n_counter <= n_iterations:
         
@@ -341,9 +346,10 @@ def calculate_sky_box(fitsimage,boxsize_pix,n_iterations, input_mask_file = Fals
         mask_box  = total_mask_bool[row-int(boxsize_pix/2):row+int(boxsize_pix/2)+1,col-int(boxsize_pix/2):col+int(boxsize_pix/2)+1]
 
         # Plot up location of box for display using show_contour
-        display_mask = np.zeros((xlen,ylen))
-        display_mask[row-int(boxsize_pix/2):row+int(boxsize_pix/2)+1,col-int(boxsize_pix/2):col+int(boxsize_pix/2)+1] = 1.0
-        CS = plt.contour(X, Y, display_mask,linewidths=1.0,alpha=0.1,colors='red')
+        if checkims:
+            display_mask = np.zeros((xlen,ylen))
+            display_mask[row-int(boxsize_pix/2):row+int(boxsize_pix/2)+1,col-int(boxsize_pix/2):col+int(boxsize_pix/2)+1] = 1.0
+            CS = plt.contour(X, Y, display_mask,linewidths=1.0,alpha=0.1,colors='red')
 
         # Measure median counts in this masked box
         counts     = np.ma.median(np.ma.masked_array(image_box,mask=mask_box))
@@ -363,18 +369,19 @@ def calculate_sky_box(fitsimage,boxsize_pix,n_iterations, input_mask_file = Fals
             n_notfinite += 1
 
     # Save figure to of box locations
-    outname = './skyregionlocs.png'
-    f1.save(outname)
-    print(f'\nSAVED  : Box location plot saved: {outname}')
+    if checkims:
+        outname = fitsimage.replace('.fits','_skyregionlocs.png')
+        f1.save(outname)
+        print(f'\nSAVED  : Box location plot saved: {outname}')
 
     printme=f'Number of attempts where average sky count in box was not finite: {n_notfinite}'
     print_verbose_string(printme,verbose=verbose)
 
-    sky,sky_error,sky_pixel_std = calculate_stats_andPrint(image,total_mask_bool,sky_counts,sky_counts_avg,pix_counts,verbose=verbose)
+    sky,sky_error,sky_pixel_std = calculate_stats_andPrint(image,total_mask_bool,sky_counts,sky_counts_avg,pix_counts,verbose=verbose,quietmode=quietmode)
 
     return sky, sky_error, sky_pixel_std
 
-def calculate_sky_annuli(fitsimage,annulusparams,n_iterations,input_mask_file = False,verbose=False):
+def calculate_sky_annuli(fitsimage,annulusparams,n_iterations,input_mask_file = False,checkims=False,verbose=False, quietmode=False):
     '''Place n_iterations number of elliptical annuli randomly in image with total_mask.
     Output 
     sky         = average of median of annuli 
@@ -393,7 +400,8 @@ def calculate_sky_annuli(fitsimage,annulusparams,n_iterations,input_mask_file = 
     total_mask_bool = combine_masks(stellar_mask,input_mask_file,verbose=verbose)  
 
     # Plot total_mask as a contour on fits image
-    plot_contourOnImage(fitsimage,total_mask_bool,verbose=verbose)
+    if checkims:
+        plot_contourOnImage(fitsimage,total_mask_bool,verbose=verbose)
 
     # Calculate sky in input annulus
     xc1,yc1,a1,b1,ang1,xc2,yc2,a2,b2,ang2 = read_annulusparams(annulusparams)
@@ -500,11 +508,11 @@ def calculate_sky_annuli(fitsimage,annulusparams,n_iterations,input_mask_file = 
     print_verbose_string(f'Number of annuli placed randomly is: {n_counter}',verbose=verbose)
     print_verbose_string(f'#Number of attempts where average sky count in box/annuli was not finite: {str(n_notfinite)}',verbose=verbose)
 
-    sky,sky_error,sky_pixel_std = calculate_stats_andPrint(image,total_mask_bool,sky_counts,sky_counts_avg,pix_counts,verbose=verbose)
+    sky,sky_error,sky_pixel_std = calculate_stats_andPrint(image,total_mask_bool,sky_counts,sky_counts_avg,pix_counts,verbose=verbose, quietmode=quietmode)
 
     return sky, sky_error, sky_pixel_std
 
-def calculate_sky_annuli_allover(fitsimage,annulusparams,n_iterations,input_mask_file = False,verbose=False):
+def calculate_sky_annuli_allover(fitsimage,annulusparams,n_iterations,input_mask_file = False,checkims=False,verbose=False, quietmode=False):
     '''Place n_iterations number of elliptical annuli randomly in image with total_mask.
     Annuli placed is allowed to move around more than the --annuli option.
     Output 
@@ -528,7 +536,8 @@ def calculate_skyStats( fitsimage,
                         place_annuli_allover = False,
                         n_iterations         = 100,
                         input_mask_file      = False,
-                        verbose = False, debugmode = False):
+                        checkims             = False,
+                        quietmode = False, verbose = False, debugmode = False):
     '''calculate_skyStats.py -- Mask stars aggressively, determine sky background stats in remaining pixels. Stats are
     sky:            Average of many sky box/annuli medians (which are each a sample of the sky value) 
     sky_error:      Standard deviation of many sky box/annuli medians (which are each a sample of the sky value) 
@@ -563,7 +572,7 @@ def calculate_skyStats( fitsimage,
     # Standard deviation of these medians
     if place_boxes:
         boxsize_pix     = int(place_boxes)
-        sky, sky_error, sky_pixel_variance = calculate_sky_box(fitsimage,boxsize_pix, n_iterations, input_mask_file = input_mask_file, verbose=verbose)
+        sky, sky_error, sky_pixel_variance = calculate_sky_box(fitsimage,boxsize_pix, n_iterations, input_mask_file = input_mask_file, checkims=checkims, verbose=verbose, quietmode=quietmode)
 
     # ===== --annulus =====
     # Place X random X pixel elliptical annuli 
@@ -571,7 +580,7 @@ def calculate_skyStats( fitsimage,
     # Standard deviation of these medians
     if place_annuli:
         annulusparams = place_annuli
-        sky, sky_error, sky_pixel_variance = calculate_sky_annuli(fitsimage,annulusparams,n_iterations,input_mask_file=input_mask_file,verbose=verbose)
+        sky, sky_error, sky_pixel_variance = calculate_sky_annuli(fitsimage,annulusparams,n_iterations,input_mask_file=input_mask_file,checkims=checkims,verbose=verbose, quietmode=quietmode)
 
     # ===== --annulusallover =====
     # Place X random X pixel elliptical annuli 
@@ -579,7 +588,7 @@ def calculate_skyStats( fitsimage,
     # Standard deviation of these medians
     if place_annuli_allover:
         annulusparams = place_annuli_allover
-        sky, sky_error, sky_pixel_variance = calculate_sky_annuli_allover(fitsimage,annulusparams,n_iterations,input_mask_file=input_mask_file,verbose=verbose)
+        sky, sky_error, sky_pixel_variance = calculate_sky_annuli_allover(fitsimage,annulusparams,n_iterations,input_mask_file=input_mask_file,checkims=checkims,verbose=verbose, quietmode=quietmode)
 
     # ===== no option set, just calculate stats for all unmasked pixels =====
 
@@ -597,6 +606,7 @@ if __name__=='__main__':
     arguments = docopt.docopt(__doc__)
     
     fitsimage            = arguments['<fitsimage>']
+    quietmode            = arguments['<quietmode>']
     verbose              = arguments['--verbose']
     debugmode            = arguments['--debug']
     place_boxes          = arguments['--box']
@@ -604,6 +614,7 @@ if __name__=='__main__':
     place_annuli_allover = arguments['--annulusallover']
     n_iterations         = int(arguments['--niterations'])
     input_mask_file      = arguments['--mask']
+    checkims             = arguments['--checkims']
 
     if debugmode:
         print(arguments)
@@ -614,5 +625,6 @@ if __name__=='__main__':
                             place_annuli_allover = place_annuli_allover,
                             n_iterations         = n_iterations,
                             input_mask_file      = input_mask_file,
-                            verbose = verbose, debugmode = debugmode)
+                            checkims             = checkims,
+                            quietmode=quietmode, verbose=verbose, debugmode=debugmode)
 
