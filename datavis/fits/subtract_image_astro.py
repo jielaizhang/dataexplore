@@ -2,8 +2,8 @@
 
 #!/usr/bin/env python
 
-""" -- 
-Usage: XXX [-h] [-v] [--debug] [-s SAVELOC] [-o] <fitsfile1> <fitsfile2>
+""" subtract_image_astro.py -- Input two visible wavelength astronomical fits files, image subtraction is carried out using hotpants. 
+Usage: subtract_image_astro.py [-h] [-v] [--debug] [-s SAVELOC] [-o] <fitsfile1> <fitsfile2>
 
 Arguments:
     fitsfile1 (string)
@@ -17,9 +17,9 @@ Options:
     -o, --overwrite                         Overwrite subtraction and badpixmap if it exists, and saveloc specified.     
 
 Examples:
-    bash: python subtract_image file1.fits file2.fits --overwrite --save file1_sub_file2.fits 
-    python: from datavis.fits.subtract_image import subtract_image
-            subtract_image(fitsfile1,fitsfile2,saveloc=False|'./sub.fits',verbose=False|True,debugmode=False|True)
+    bash: python subtract_image_astro file1.fits file2.fits --overwrite --save file1_sub_file2.fits 
+    python: from datavis.fits.subtract_image_astro import subtract_image_astro
+            subtract_image_astro(fitsfile1,fitsfile2,saveloc=False|'./sub.fits',verbose=False|True,debugmode=False|True)
 """
 import docopt
 import astropy.io.fits as fits
@@ -77,7 +77,7 @@ def ifexistexit(fname):
 ####################### Main Function ########################
 ##############################################################
 
-def subtract_image(fitsfile1,fitsfile2,saveloc=False,overwrite=False,verbose=False,debugmode=False):
+def subtract_image_astro(fitsfile1,fitsfile2,saveloc=False,overwrite=False,verbose=False,debugmode=False):
 
     # Specify output image, system exit if image already exists (do not overwrite)
     # If saveloc provided, also set location of badpixmap output 
@@ -167,4 +167,4 @@ if __name__ == "__main__":
     saveloc         = arguments['--save']
     overwrite       = arguments['--overwrite']
 
-    _ = subtract_image(fitsfile1,fitsfile2,saveloc=saveloc,overwrite=overwrite,verbose=verbose,debugmode=debugmode)
+    _ = subtract_image_astro(fitsfile1,fitsfile2,saveloc=saveloc,overwrite=overwrite,verbose=verbose,debugmode=debugmode)
