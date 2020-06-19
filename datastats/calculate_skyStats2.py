@@ -13,7 +13,7 @@
 
     Option to input additional mask (mask should be zeros and ones; zero pixels are not masked, one pixels are masked). Important to input a mask that masks out the galaxy and its extended low surface brightness features!
 
-    Output are XXX
+    Output are ./mask_contour.png and ./skyregionlocs.png (overwrites)
 
 Required input 
     fitsimage - image for which background stats are desired.
