@@ -23,7 +23,7 @@ Examples:
     bash: python subtract_images_astro.py --overwrite --save '/dir/save/here' template.fits file1.fits file2.fits
     bash: python subtract_images_astro.py template.fits file1.fits file2.fits --overwrite --save '/dir/save/here' 
     python: from datavis.fits.subtract_images_astro import subtract_images_astro
-            subtract_image_astro(template.fits,[fits1,fits2,fits3],saveloc='./'|False,badpixmapsave=False|True, overwrite=True|False,sextractorloc='path/to/source-extractor,verbose=False|True,debugmode=False|True)
+            subtract_images_astro(template.fits,[fits1,fits2,fits3],saveloc='./'|False,badpixmapsave=False|True, overwrite=True|False,sextractorloc='path/to/source-extractor,verbose=False|True,debugmode=False|True)
 """
 
 
