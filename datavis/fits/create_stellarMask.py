@@ -226,6 +226,8 @@ def create_stellarMask(fitsimage,output=False,sextractorloc='/opt/local/bin/sour
     Mask will have zeros and ones, ones are the locations where there are stars. 
     The mask is created by growing the source extractor segmentation map.'''
 
+    print_debug_string(f'sextractor loc is specified in create_stellarMask to be: {sextractorloc}',debugmode=debugmode)
+
     # If write fits file specified, check that file doesn't already exist. If yes, exit.
     if output:
         if os.path.exists(output):
