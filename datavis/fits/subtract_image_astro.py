@@ -3,7 +3,7 @@
 #!/usr/bin/env python
 
 """ subtract_image_astro.py -- Input two visible wavelength astronomical fits files, image subtraction is carried out using hotpants. 
-Usage: subtract_image_astro.py [-h] [-v] [--debug] [-s SAVELOC] [-o] [--sextractor LOC] <fitsfile1> <fitsfile2>
+Usage: subtract_image_astro.py [-h] [-v] [--debug] [-s SAVELOC] [--badpixmapsave] [-o] [--sextractor LOC] <fitsfile1> <fitsfile2>
 
 Arguments:
     fitsfile1 (string)
@@ -13,14 +13,15 @@ Options:
     -h, --help                              Show this screen
     -v, --verbose                           Show extra information [default: False]     
     --debug                                 Output more for debugging [default: False]
-    -s SAVELOC, --save SAVELOC              Save subtraction image as fits file at this path. If input, badpix map will be saved at saveloc_badpixmap.fits.
+    -s SAVELOC, --save SAVELOC              Save subtraction image as fits file at this path. 
+    --badpixmapsave                         If input, badpix map will be saved at saveloc_badpixmap.fits. This only happens if there is a -s saveloc [default: False]
     -o, --overwrite                         Overwrite subtraction and badpixmap if it exists, and saveloc specified. 
-    --sextractor LOC                          Indicate location of source extractor for FWHM and sky calculations. [default: /opt/local/bin/source-extractor]
+    --sextractor LOC                        Indicate location of source extractor for FWHM and sky calculations. [default: /opt/local/bin/source-extractor]
 
 Examples:
     bash: python subtract_image_astro file1.fits file2.fits --overwrite --save file1_sub_file2.fits 
     python: from datavis.fits.subtract_image_astro import subtract_image_astro
-            subtract_image_astro(fitsfile1,fitsfile2,saveloc=False|'./sub.fits',verbose=False|True,debugmode=False|True)
+            subtract_image_astro(fitsfile1,fitsfile2,saveloc=False|'./sub.fits',badpixmapsave=False|True,verbose=False|True,debugmode=False|True)
 """
 import docopt
 import astropy.io.fits as fits
@@ -78,7 +79,7 @@ def ifexistexit(fname):
 ####################### Main Function ########################
 ##############################################################
 
-def subtract_image_astro(fitsfile1,fitsfile2,saveloc=False,overwrite=False,sextractorloc='/opt/local/bin/source-extractor',verbose=False,debugmode=False):
+def subtract_image_astro(fitsfile1,fitsfile2,saveloc=False,badpixmapsave=False,overwrite=False,sextractorloc='/opt/local/bin/source-extractor',verbose=False,debugmode=False):
 
     # Specify output image, system exit if image already exists (do not overwrite)
     # If saveloc provided, also set location of badpixmap output 
@@ -91,7 +92,7 @@ def subtract_image_astro(fitsfile1,fitsfile2,saveloc=False,overwrite=False,sextr
     else:
         saveit             = False
         saveloc            = './sub_temp.fits'
-        saveloc_badpixmap  = './sub_temp.fits'
+        saveloc_badpixmap  = './sub_badpixmap_temp.fits'
         print_verbose_string(f'Temporary hotpants output image saved at: {temp_saveloc}.',verbose=verbose)
         print_verbose_string(f'Temporary hotpants output image saved at: {saveloc_badpixmap}.',verbose=verbose)
 
@@ -142,7 +143,10 @@ def subtract_image_astro(fitsfile1,fitsfile2,saveloc=False,overwrite=False,sextr
         print_verbose_string(f'Temporary hotpants output image Removed: {temp_saveloc}.',verbose=verbose)
         print_verbose_string(f'Temporary hotpants output image Removed: {saveloc_badpixmap}.',verbose=verbose)
         print('No output path specified, so no subtraction image will be saved.')
-
+    elif saveit and not badpixmapsave:
+        clearit(saveloc_badpixmap)
+        print_verbose_string(f'Temporary hotpants output image Removed: {saveloc_badpixmap}.',verbose=verbose)
+        print(f'SAVED  : {saveloc}')
     else:
         print(f'SAVED  : {saveloc}')
         print(f'SAVED  : {saveloc_badpixmap}')
@@ -166,7 +170,10 @@ if __name__ == "__main__":
     fitsfile2       = arguments['<fitsfile2>']
 
     saveloc         = arguments['--save']
+    badpixmapsave   = arguments['--badpixmapsave']
     overwrite       = arguments['--overwrite']
     sextractorloc   = arguments['--sextractor']
 
-    _ = subtract_image_astro(fitsfile1,fitsfile2,saveloc=saveloc,overwrite=overwrite,sextractorloc=sextractorloc,verbose=verbose,debugmode=debugmode)
+    _ = subtract_image_astro(fitsfile1,fitsfile2,
+                             saveloc=saveloc,badpixmapsave=badpixmapsave,overwrite=overwrite,
+                             sextractorloc=sextractorloc,verbose=verbose,debugmode=debugmode)
