@@ -238,7 +238,7 @@ def create_stellarMask(fitsimage,output=False,sextractorloc='/opt/local/bin/sour
     d = fits.getdata(fitsimage)
     
     # Run Source Extractor, save segmentation map
-    segname = run_SExtractor(fitsimage)
+    segname = run_SExtractor(fitsimage, sextractorloc=sextractorloc)
     printme = f'SAVED: {segname}'
     print_debug_string(printme,debugmode=debugmode)
 
