@@ -21,7 +21,9 @@ Examples:
 import docopt
 import astropy.io.fits as fits
 import numpy as np
-import sys, os
+import sys, os, ntpath
+from pathlib import Path
+
 import copy
 
 __author__      = "Jielai Zhang"
@@ -65,6 +67,12 @@ def clearit(fname):
 
     # Determine save directory
     savedir = os.sep.join(saveloc.split(os.sep)[0:-1]) + os.sep
+
+    # Determine saveloc for subtracted image based on input savedir and input file name
+    fname       = ntpath.basename(fitspath)
+    fname_stub  = Path(fname).stem
+    saveloc     = savedir + os.path.sep + fname_stub + '_sub.fits'
+
 
     # Saving fits file
     fits.writeto(output,stellar_mask) 
