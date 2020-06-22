@@ -81,6 +81,8 @@ def ifexistexit(fname):
 
 def subtract_image_astro(fitsfile1,fitsfile2,saveloc=False,badpixmapsave=False,overwrite=False,sextractorloc='/opt/local/bin/source-extractor',verbose=False,debugmode=False):
 
+    print_debug_string(f'sextractor loc specified in subtract_image_astro is: {sextractorloc}',debugmode=debugmode)
+
     # Specify output image, system exit if image already exists (do not overwrite)
     # If saveloc provided, also set location of badpixmap output 
     if saveloc:

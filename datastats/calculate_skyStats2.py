@@ -556,6 +556,9 @@ def calculate_skyStats( fitsimage,
     Output are XXX
     '''
 
+    print_debug_string(f'sextractor loc being used by calculate_skyStats is: {sextractorloc}',debugmode=debugmode)
+
+
     # Check which option(s) were set. If more than 1, ask user to re-set, if zero, set place_no_shapes to True.
     place_no_shapes = False
     options_true = [place_boxes, place_annuli, place_annuli_allover]
