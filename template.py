@@ -3,7 +3,7 @@
 #!/usr/bin/env python
 
 """ -- 
-Usage: XXX [-h] [-v] [--debug] [-o SAVELOC] [-b STRING] (add | subtract) <blah>
+Usage: XXX [-h] [-v] [--debug] [-q] [-o SAVELOC] [-b STRING] (add | subtract) <blah>
 
 Arguments:
     blah (string)
@@ -11,7 +11,8 @@ Arguments:
 
 Options:
     -h, --help                              Show this screen
-    -v, --verbose                           Show extra information [default: False]     
+    -v, --verbose                           Show extra information [default: False]   
+    -q, --quietmode                         Minimize print to screen. This is useful when this function is called in another function. [default: False]  
     --debug                                 Output more for debugging [default: False]
     -o SAVELOC, --out SAVELOC               Saved output as [default: ./profile.png]
     -b STRING, --boundonaxis STRING         xmin,xmax,ymin,ymax e.g. 10,50,0,100; e.g. 10,nan,0,100
@@ -65,6 +66,7 @@ def clearit(fname):
 ####################### Main Function ########################
 ##############################################################
 
+def XXX(verbose=False,debugmode=False,quietmode=False):
     # Determine save directory
     savedir = os.sep.join(saveloc.split(os.sep)[0:-1]) + os.sep
 
@@ -95,6 +97,7 @@ def clearit(fname):
         plt.ylim([ymin,ymax])
         plt.xlim([xmin,xmax])
 
+return None
 
 ############################################################################
 ####################### BODY OF PROGRAM STARTS HERE ########################
@@ -106,6 +109,7 @@ if __name__ == "__main__":
     arguments       = docopt.docopt(__doc__)
     verbose         = arguments['--verbose']
     debugmode       = arguments['--debug']
+    quietmode       = arugments['--quietmode']
     if debugmode:
         print(arguments)   
     saveloc         = arguments['--out']
@@ -116,4 +120,4 @@ if __name__ == "__main__":
     if xyaxislims:
         xmin,xmax,ymin,ymax = np.array(xyaxislims.split(',')).astype(np.float)
 
-
+    _ = XXX(verbose=verbose,debugmode=debugmode,quietmode=quietmode)
