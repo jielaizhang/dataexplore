@@ -42,7 +42,7 @@ def print_verbose_string(printme,verbose=False,underscores=False):
     if verbose:
         if underscores:
             print("-" * len(f"VERBOSE: {printme}"),file=sys.stdout)
-            print(f"VERBOSE: {printme}",file=sys.stdout
+            print(f"VERBOSE: {printme}",file=sys.stdout)
             print("-" * len(f"VERBOSE: {printme}"),file=sys.stdout)
         else:
             print(f"VERBOSE: {printme}",file=sys.stdout)
