@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-""" subtract_images_astro.py -- Input a template and many images to subtract from template. Images should be visible wavelength astronomical fits files, image subtraction is carried out using hotpants. Inserted into the header will be TEMPLATE and SUBTRACT listing the paths to the two template and file that is subtracted.
+""" subtract_images_astro.py -- Input a template and many images to subtract from template. Images should be visible wavelength astronomical fits files, image subtraction is carried out using hotpants. Assume input images are already aligned.
+
+Not implemented yet: Inserted into the header will be TEMPLATE and SUBTRACT listing the paths to the two template and file that is subtracted. 
 
 To be improved: if badpixmapsave = True, it will be saved in same location as sub image with filename subimagename_badpixmap.fits, however, it is currently not naturally passed on from subtract_images_astro.py right now, it is just assumed that it is done this way. Should improve such that the file names are passed on from called functions. 
 

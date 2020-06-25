@@ -2,7 +2,7 @@
 
 #!/usr/bin/env python
 
-""" subtract_image_astro.py -- Input two visible wavelength astronomical fits files, image subtraction is carried out using hotpants. 
+""" subtract_image_astro.py -- Input two visible wavelength astronomical fits files, image subtraction is carried out using hotpants. Asume images are aligned.
 Usage: subtract_image_astro.py [-h] [-v] [--debug] [-s SAVELOC] [--badpixmapsave] [-o] [--sextractor LOC] <fitsfile1> <fitsfile2>
 
 Arguments:
