@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-""" subtract_images_astro.py -- Input a template and many images to subtract from template. Images should be visible wavelength astronomical fits files, image subtraction is carried out using hotpants. Assume input images are already aligned.
+""" subtract_images.py -- Input a template and many images to subtract from template. Images should be visible wavelength astronomical fits files, image subtraction is carried out using hotpants. Assume input images are already aligned.
 
 Not implemented yet: Inserted into the header will be TEMPLATE and SUBTRACT listing the paths to the two template and file that is subtracted. 
 
-To be improved: if badpixmapsave = True, it will be saved in same location as sub image with filename subimagename_badpixmap.fits, however, it is currently not naturally passed on from subtract_images_astro.py right now, it is just assumed that it is done this way. Should improve such that the file names are passed on from called functions. 
+To be improved: if badpixmapsave = True, it will be saved in same location as sub image with filename subimagename_badpixmap.fits, however, it is currently not naturally passed on from subtract_images.py right now, it is just assumed that it is done this way. Should improve such that the file names are passed on from called functions. 
 
-Usage: subtract_images_astro.py [-h] [-v] [--debug] [-s SAVEDIR] [--badpixmapsave] [-o] [--sextractor LOC] <template> <fitsfiles>...
+Usage: subtract_images.py [-h] [-v] [--debug] [-s SAVEDIR] [--badpixmapsave] [-o] [--sextractor LOC] <template> <fitsfiles>...
 
 Arguments:
     template (string)
@@ -22,10 +22,10 @@ Options:
     --sextractor LOC                        Indicate location of source extractor for FWHM and sky calculations. [default: /opt/local/bin/source-extractor]
 
 Examples:
-    bash: python subtract_images_astro.py --overwrite --save '/dir/save/here' template.fits file1.fits file2.fits
-    bash: python subtract_images_astro.py template.fits file1.fits file2.fits --overwrite --save '/dir/save/here' 
-    python: from datavis.fits.subtract_images_astro import subtract_images_astro
-            subtract_images_astro(template.fits,[fits1,fits2,fits3],saveloc='./'|False,badpixmapsave=False|True, overwrite=True|False,sextractorloc='path/to/source-extractor,verbose=False|True,debugmode=False|True)
+    bash: python subtract_images.py --overwrite --save '/dir/save/here' template.fits file1.fits file2.fits
+    bash: python subtract_images.py template.fits file1.fits file2.fits --overwrite --save '/dir/save/here' 
+    python: from datavis.fits.subtract_images import subtract_images
+            subtract_images(template.fits,[fits1,fits2,fits3],saveloc='./'|False,badpixmapsave=False|True, overwrite=True|False,sextractorloc='path/to/source-extractor,verbose=False|True,debugmode=False|True)
 """
 
 
@@ -36,7 +36,7 @@ import sys, os, ntpath
 from pathlib import Path
 
 # Jielai Zhang's modules
-from datavis.fits.subtract_image_astro import subtract_image_astro
+from datavis.fits.subtract_image import subtract_image
 
 __author__      = "Jielai Zhang"
 __license__     = "MIT"
@@ -77,7 +77,7 @@ def clearit(fname):
 ####################### Main Function ########################
 ##############################################################
 
-def subtract_images_astro(template,fitsfiles,savedir='./',badpixmapsave=False,overwrite=False,sextractorloc='/opt/local/bin/source-extractor',verbose=False,debugmode=False):
+def subtract_images(template,fitsfiles,savedir='./',badpixmapsave=False,overwrite=False,sextractorloc='/opt/local/bin/source-extractor',verbose=False,debugmode=False):
     
     # Start array to save subtracted images
     subtracted_images           = []
@@ -100,7 +100,7 @@ def subtract_images_astro(template,fitsfiles,savedir='./',badpixmapsave=False,ov
             badpixsaveloc = saveloc.replace('.fits','_badpixmap.fits')
 
         # Do image subtraction
-        subtracted_image, badpixmap = subtract_image_astro(template,fitspath,saveloc=saveloc,overwrite=overwrite,sextractorloc=sextractorloc,verbose=verbose,debugmode=debugmode)
+        subtracted_image, badpixmap = subtract_image(template,fitspath,saveloc=saveloc,overwrite=overwrite,sextractorloc=sextractorloc,verbose=verbose,debugmode=debugmode)
 
         # Append to array of subtracted images
         subtracted_images.append(subtracted_image)
@@ -143,5 +143,5 @@ if __name__ == "__main__":
     overwrite       = arguments['--overwrite']
     sextractorloc   = arguments['--sextractor']
 
-    _ = subtract_images_astro(template,fitsfiles,savedir=savedir,badpixmapsave=badpixmapsave,overwrite=overwrite,sextractorloc=sextractorloc,verbose=verbose,debugmode=debugmode)
+    _ = subtract_images(template,fitsfiles,savedir=savedir,badpixmapsave=badpixmapsave,overwrite=overwrite,sextractorloc=sextractorloc,verbose=verbose,debugmode=debugmode)
 
