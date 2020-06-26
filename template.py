@@ -57,9 +57,10 @@ def print_debug_string(printme,debugmode=False,underscores=False):
             print(f"DEBUG  : {printme}",file=sys.stdout)
 
 '''These functions help organise or delete files'''
-def clearit(fname):
-    if os.path.isfile(fname):
-        os.remove(fname)
+def clearit(fnames):
+    for fname in fnames:
+        if os.path.isfile(fname):
+            os.remove(fname)
     return None
 
 ##############################################################
@@ -97,7 +98,7 @@ def XXX(verbose=False,debugmode=False,quietmode=False):
         plt.ylim([ymin,ymax])
         plt.xlim([xmin,xmax])
 
-return None
+    return None
 
 ############################################################################
 ####################### BODY OF PROGRAM STARTS HERE ########################
@@ -109,7 +110,7 @@ if __name__ == "__main__":
     arguments       = docopt.docopt(__doc__)
     verbose         = arguments['--verbose']
     debugmode       = arguments['--debug']
-    quietmode       = arugments['--quietmode']
+    quietmode       = arguments['--quietmode']
     if debugmode:
         print(arguments)   
     saveloc         = arguments['--out']
