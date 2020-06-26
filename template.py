@@ -57,10 +57,12 @@ def print_debug_string(printme,debugmode=False,underscores=False):
             print(f"DEBUG  : {printme}",file=sys.stdout)
 
 '''These functions help organise or delete files'''
-def clearit(fnames):
+def clearit(fnames,debugmode=False):
     for fname in fnames:
         if os.path.isfile(fname):
             os.remove(fname)
+            printme = f'Temporary file deleted: {fname}.'
+            print_debug_string(printme,debugmode=debugmode)
     return None
 
 ##############################################################
