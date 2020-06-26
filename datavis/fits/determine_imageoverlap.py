@@ -19,6 +19,10 @@ Options:
     -p SAVELOC, --plot SAVELOC              Saved output as.
 
 Examples:
+    Bash: python determine_imageoverlap.py -p ./imageoverlap.png f1.fits f2.fits
+    Python: from datavis.fits.determine_imageoverlap import determine_imageoverlap
+    XLEN,YLEN = determine_imageoverlap( f1,f2,plotsave=False,
+                                        verbose=False,debugmode=False,quietmode=False)
 """
 import docopt
 import astropy.io.fits as fits
