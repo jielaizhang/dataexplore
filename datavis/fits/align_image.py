@@ -21,7 +21,7 @@ Options:
 Examples:
     Bash: python align_image.py f1.fits f2.fits -o ./
     Python: from datavis.fits.align_image import align_image
-            align_image(f1,f2,savedir='./',swarploc='/opt/local/bin',verbose=False,debugmode=False,quietmode=False
+            f_out1,f_out2 = align_image(f1,f2,savedir='./',swarploc='/opt/local/bin',verbose=False,debugmode=False,quietmode=False)
     
 """
 import docopt
