@@ -31,7 +31,7 @@ Options:
     -a STRING, --annulus STRING         Select annulus with params 'xc1,yc1,a1,b1,ang1,xc2,yc2,a2,b2,ang2', angle in degrees, counter clockwise rotation; place random annuli around inital specs.
     --annulusallover STRING             As above, but when placing annulus around galaxy, let it move around a little more than above option.
     -n INT, --niterations INT           Input number of random annuli to be placed. (not used for boxes). [default: 100]
-    -m FILE, --mask FILE                Input mask to be combined with program calculated stellar mask. 
+    -m FILE, --mask FILE                Input mask to be combined with program calculated source mask. 
     -c, --checkims                      Output two check images for masking and sky regions used. [default: False]
 
 Example:
@@ -63,7 +63,7 @@ import aplpy
 from astropy.visualization import ZScaleInterval
 
 # modules by Jielai Zhang
-from datavis.fits.create_stellarMask import create_stellarMask
+from datavis.fits.create_sourceMask import create_sourceMask
 
 #########################################
 # ======= House Keeping Functions =======
@@ -135,20 +135,20 @@ def make_annulus_mask(xlen,ylen,xc1,yc1,a1,b1,ang1,xc2,yc2,a2,b2,ang2):
 # ======= Other Functions (used for both box/annulus sky sampling options) =======
 ##################################################################################
 
-def combine_masks(stellar_mask,input_mask_file,verbose=False):
+def combine_masks(source_mask,input_mask_file,verbose=False):
 
     # If extra mask file, combine masks
     if input_mask_file:
         input_mask                  = fits.getdata(input_mask_file)
-        total_mask                  = stellar_mask + input_mask
+        total_mask                  = source_mask + input_mask
         total_mask                  = total_mask[total_mask!=0] == 1.
         total_mask                  = total_mask == 1 # Change to boolean, True where 1
-        printme = 'Input mask is combined with program created stellar mask.'
+        printme = 'Input mask is combined with program created source mask.'
         print_verbose_string(printme,verbose=verbose)
     else:
-        total_mask                  = stellar_mask
+        total_mask                  = source_mask
         total_mask                  = total_mask == 1 # Change to boolean, True where 1
-        printme = 'No input mask file supplied, mask used is the program created stellar mask.'
+        printme = 'No input mask file supplied, mask used is the program created source mask.'
         print_verbose_string(printme,verbose=verbose)
 
     return total_mask
@@ -302,11 +302,11 @@ def calculate_sky_box(fitsimage, boxsize_pix, n_iterations, input_mask_file=Fals
     # Read in image and header
     image,h = fits.getdata(fitsimage, header=True)
 
-    # Make stellar mask
-    stellar_mask                    = create_stellarMask(fitsimage,sextractorloc=sextractorloc)
+    # Make source mask
+    source_mask                    = create_sourceMask(fitsimage,sextractorloc=sextractorloc)
 
     # Combine with input_mask if input_mask_file supplied
-    total_mask_bool = combine_masks(stellar_mask,input_mask_file,verbose=verbose)  
+    total_mask_bool = combine_masks(source_mask,input_mask_file,verbose=verbose)  
 
     # Plot total_mask as a contour on fits image
     if checkims:
@@ -394,11 +394,11 @@ def calculate_sky_annuli(fitsimage,annulusparams,n_iterations,input_mask_file = 
     # Read in image and header
     image,h = fits.getdata(fitsimage, header=True)
 
-    # Make stellar mask
-    stellar_mask                    = create_stellarMask(fitsimage)
+    # Make source mask
+    source_mask                    = create_sourceMask(fitsimage)
 
     # Combine with input_mask if input_mask_file supplied
-    total_mask_bool = combine_masks(stellar_mask,input_mask_file,verbose=verbose)  
+    total_mask_bool = combine_masks(source_mask,input_mask_file,verbose=verbose)  
 
     # Plot total_mask as a contour on fits image
     if checkims:
