@@ -189,7 +189,7 @@ if __name__ == "__main__":
     fitsfiles = arguments['<fitsfiles>']
 
     # Non-mandatory options without arguments
-    quietmode       = arugments['--quiet']
+    quietmode       = arguments['--quiet']
     verbose         = arguments['--verbose']
     sextractorloc   = arguments['--sextractor']
     
