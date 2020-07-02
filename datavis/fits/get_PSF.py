@@ -221,7 +221,7 @@ def run_PSFex(psfex_cat,psfexloc='opt/local/bin/psfex',verbose=False,debugmode=F
     psfex_psf_file     = psfex_dir + os.sep + psfex_namestub + '.psf'
 
     # Determine psf fits file checkimage output, and move it to where psf output is (same dir as input file)
-    psfex_proto_file      = psfex_dir + os.sep + 'proto_'+ psfex_namestub + '.fits'
+    psfex_proto_file      = psfex_dir + os.sep + psfex_namestub + '_proto.fits'
     psfex_proto_outputloc = '.'+os.sep+'proto_'+psfex_namestub+'.fits'
     shutil.move(psfex_proto_outputloc,psfex_proto_file)
 
