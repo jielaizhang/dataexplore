@@ -2,9 +2,9 @@
 
 #!/usr/bin/env python
 
-""" determine_imageoverlap.py -- Determine the max number of pixels in AXIS1 and AXIS2 of the input fits images, print to screen unless suppressed. Plot up the footprint if -p option is on. Input two images should be of same  Right now, only takes in 2 fits images (YOLO).
+""" determine_imageOverlap.py -- Determine the max number of pixels in AXIS1 and AXIS2 of the input fits images, print to screen unless suppressed. Plot up the footprint if -p option is on. Input two images should be of same  Right now, only takes in 2 fits images (YOLO).
 
-Usage: determine_imageoverlap.py [-h] [-v] [--debug] [-q] [-p SAVELOC] <fitsfile1> <fitsfile2>
+Usage: determine_imageOverlap.py [-h] [-v] [--debug] [-q] [-p SAVELOC] <fitsfile1> <fitsfile2>
 
 Arguments:
     fitsfile1 (string)
@@ -19,9 +19,9 @@ Options:
     -p SAVELOC, --plot SAVELOC              Saved output as.
 
 Examples:
-    Bash: python determine_imageoverlap.py -p ./imageoverlap.png f1.fits f2.fits
-    Python: from datavis.fits.determine_imageoverlap import determine_imageoverlap
-    XLEN,YLEN = determine_imageoverlap( f1,f2,plotsave=False,
+    Bash: python determine_imageOverlap.py -p ./imageoverlap.png f1.fits f2.fits
+    Python: from datavis.fits.determine_imageOverlap import determine_imageOverlap
+    XLEN,YLEN = determine_imageOverlap( f1,f2,plotsave=False,
                                         verbose=False,debugmode=False,quietmode=False)
 """
 import docopt
@@ -92,9 +92,9 @@ def perform_pixelscaleChecks(w1,w2,verbose=False,debugmode=False):
     pixel_size1 = utils.proj_plane_pixel_scales(w1)
     pixel_size2 = utils.proj_plane_pixel_scales(w2)  
     if (pixel_size1[0]-pixel_size1[1])/pixel_size1[0] > 0.01:
-        sys.exit(f'ERROR  : input to determine_imageoverlap, {f1}, has pixels that are not very square, this code is not set up to deal with that YOLO')
+        sys.exit(f'ERROR  : input to determine_imageOverlap, {f1}, has pixels that are not very square, this code is not set up to deal with that YOLO')
     if (pixel_size2[0]-pixel_size2[1])/pixel_size2[0] > 0.01:
-        sys.exit(f'ERROR  : input to determine_imageoverlap, {f2}, has pixels that are not very square, this code is not set up to deal with that YOLO')
+        sys.exit(f'ERROR  : input to determine_imageOverlap, {f2}, has pixels that are not very square, this code is not set up to deal with that YOLO')
 
     # Check the pixel scale of two input images are similar, if not, throw a warning
     if abs(pixel_size1[0]-pixel_size2[0])/pixel_size1[0] < 0.01:
@@ -107,7 +107,7 @@ def perform_pixelscaleChecks(w1,w2,verbose=False,debugmode=False):
         printme=f'The two image pixel scales have a diff > 10% but smaller than a factor of 2, could be an issue: {pixel_size1},{pixel_size2}'
         print_debug_string(printme,debugmode=debugmode) 
     else:
-        sys.exit('ERROR  : Input images to determine_imageoverlap differ in pixel scale by more than factor of 2, check if this is ok, if ok, then time to update determine_imageoverlap to allow this.')
+        sys.exit('ERROR  : Input images to determine_imageOverlap differ in pixel scale by more than factor of 2, check if this is ok, if ok, then time to update determine_imageOverlap to allow this.')
 
     # Print some extra information if in verbose mode
     printme=f'If SWarp is used with PIXELSCALE_TYPE default of MEDIAN, the output image pix scale is the median of pixel scales at centre of input images.'
