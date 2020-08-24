@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-"""measure_psf.py -- read in fits files and use PSFEx to measure the average PSF of the images.  
+"""measure_psf.py -- read in fits files and use PSFEx to measure the average PSF of the images. Always overwrites. 
 
 Usage: measure_psf [-q] [-h] [-v] [-s LOC] [-p LOC] [-o DIR] [--fitssave] <fitsfiles>...
 
 Output:
-    For each inputfile.fits output inputfile.psf, a single extension file of the PSF and nothing else.
+    For each inputfile.fits output inputfile.psf into output directory.
+    If fitssave, also outputs inputfile_psf.fits into output directory.
 
 Options:
     -h, --help                  Show this screen
@@ -31,10 +32,11 @@ import numpy as np
 import ntpath
 from pathlib import Path
 
-####################### Source Extractor Files Templates #######################
+####################### Source Extractor and PSFEx Files Templates #######################
 conv_name = "./temp_default.conv"
 params_name = "./temp_params.txt"
 config_name = "./temp_default.sex"
+psfconfig_name = "./temp_default.psfex"
 
 f_conv = '''CONV NORM
 # 3x3 ``all-ground'' convolution mask with FWHM = 2 pixels.
@@ -54,9 +56,10 @@ VIGNET(35,35)
 '''
 
 ####################### Auxiliary Functions #######################
-def create_temp_files_for_SourceExtractor(f_conv,f_params,conv_name,params_name,
-                                          config_name,
-                                          sextractorloc='/opt/local/bin/source-extractor'):
+def create_temp_files(f_conv,f_params,conv_name,params_name,
+                      config_name,psfconfig_name,
+                      sextractorloc='/opt/local/bin/source-extractor',
+                      psfexloc='/opt/local/bin/psfex'):
 
     fp = open(params_name, "w")
     fp.write(f_params)
@@ -67,6 +70,9 @@ def create_temp_files_for_SourceExtractor(f_conv,f_params,conv_name,params_name,
     fp.close()
 
     command = sextractorloc+' -d > '+ config_name 
+    subprocess.call(command,shell=True)
+
+    command = psfexloc+' -d > '+ psfconfig_name 
     subprocess.call(command,shell=True)
 
     return None
@@ -84,8 +90,10 @@ def measure_psf(fitsfiles, outdir='./', savepsffits=False,
                 verbose=False,quietmode=False):
 
     # Create temporary files required for Source Extractor
-    create_temp_files_for_SourceExtractor(f_conv,f_params,conv_name,params_name,
-                                          config_name,sextractorloc=sextractorloc)
+    create_temp_files(f_conv,f_params,conv_name,params_name,
+                      config_name,psfconfig_name,
+                      sextractorloc=sextractorloc,
+                      psfexloc=psfexloc)
 
     # Set Source Extractor verbose type
     if verbose:
@@ -94,6 +102,8 @@ def measure_psf(fitsfiles, outdir='./', savepsffits=False,
         VERBOSE_TYPE = 'QUIET'
 
     PSFs = []
+    if savepsffits:
+        PSFfits = []
 
     # Run Source Extractor and PSFEx one image at a time
     for f in fitsfiles:
@@ -129,6 +139,8 @@ def measure_psf(fitsfiles, outdir='./', savepsffits=False,
             if savepsffits:
                 command = (f"{psfexloc} "
                            f"-PSF_DIR {outdir} "
+                           f"-VERBOSE_TYPE {VERBOSE_TYPE} "
+                           f"-c {psfconfig_name} "
                            f"-CHECKIMAGE_TYPE PROTOTYPES "
                            f"-CHECKIMAGE_NAME  proto.fits "
                            f"-PSF_SUFFIX .psf "
@@ -136,6 +148,8 @@ def measure_psf(fitsfiles, outdir='./', savepsffits=False,
             else:
                 command = (f"{psfexloc} "
                            f"-PSF_DIR {outdir} "
+                           f"-VERBOSE_TYPE {VERBOSE_TYPE} "
+                           f"-c {psfconfig_name} "
                            f"-CHECKIMAGE_TYPE NONE "
                            f"-CHECKIMAGE_NAME  NONE "
                            f"-PSF_SUFFIX .psf "
@@ -150,22 +164,38 @@ def measure_psf(fitsfiles, outdir='./', savepsffits=False,
 
         remove_temp_files([cat_out_name_temp])    
 
+        # Get input filename stub
+        f_filestub = Path(ntpath.basename(f)).stem
+
         # Save psf as a fits file if requested  
         if savepsffits:
-            f_filestub = Path(ntpath.basename(f)).stem
             proto_file = './proto_'+f_filestub+'.fits'
             # Read out the PSF 
             d_psf      = fits.getdata(proto_file)[0:25,0:25]
+            # Save for in python output
+            PSFfits.append(d_psf)
             # Save 
-            f_psf      = outdir+'/'+f_filestub+'_psf.fits'
-            fits.writeto(f_psf,d_psf)
+            f_psffits  = outdir+'/'+f_filestub+'_psf.fits'
+            fits.writeto(f_psffits,d_psf,overwrite=True)
             # Remove proto file
             os.remove(proto_file)
+            # print if not quiet
+            if not quietmode:
+                print(f'Saved: {f_psffits}')
+
+        # Determine where .psf is saved 
+        f_psfbinary    = outdir+'/'+f_filestub+'.psf'
+        PSFs.append(f_psfbinary)
+        if not quietmode:
+            print(f'Saved: {f_psfbinary}')
             
     # Remove temporary files required for Source Extractor
-    remove_temp_files([params_name,conv_name,config_name,'psfex.xml'])
+    remove_temp_files([params_name,conv_name,config_name,psfconfig_name,'psfex.xml'])
     
-    return PSFs
+    if savepsffits:
+        return PSFs, PSFfits
+    else:
+        return PSFs
 
 ####################### BODY OF PROGRAM STARTS HERE ########################
 
