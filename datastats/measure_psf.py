@@ -21,6 +21,7 @@ Examples:
     bash: python measure_psf.py -v -o ../psfs one.fits two.fits 
     python: from datastats.measure_psf import measure_psf
             PSFs = measure_psf(fitsfiles,sextractorloc='/opt/local/bin/source-extractor,psfloc='/opt/local/bin/psfex',verbose=False|True)
+            PSFs = measure_psf([single_fitsfile],sextractorloc='/opt/local/bin/source-extractor,psfloc='/opt/local/bin/psfex',verbose=False|True)
 """
 
 import docopt, os
