@@ -5,7 +5,7 @@ To do: write out text file of stats
      : rename to calculate_imageStats_spreadmodel.py
      : write another one that is calculate_imageStats.py
 
-Usage: calculate_imageStats [-q] [--debug] [-h] [-v] [-s LOC] [-p LOC] [--minfwhm FLOAT] <fitsfiles>...
+Usage: calculate_imageStats [-q] [--debug] [-h] [-v] [-s LOC] [-p LOC] [--minfwhm FLOAT] [-o FILE] <fitsfiles>...
 
 Options:
     -h, --help                  Show this screen
@@ -15,7 +15,10 @@ Options:
     -s LOC, --sextractor LOC    Location of source extractor [default: /opt/local/bin/source-extractor] 
     -p LOC, --psfex LOC         Location of PSFEx [default: /opt/local/bin/psfex]
     --minfwhm FLOAT             Minimum FWHM_IMAGE for this instrument, used for star selection. Default set for DECam [default: 2.05]
+    -o FILE, --out FILE         Save stats on each input image in this file 
 
+Examples:
+    python calculate_imageStats.py *fits -o ./outfile.txt
 """
 
 import docopt, os
@@ -24,9 +27,12 @@ import subprocess
 from astropy.io import ascii
 import pandas as pd
 import numpy as np
+import ntpath
+import time
 
 # Jielai Modules
 from datastats.measure_psf import measure_psf
+from datastats.calculate_skyStats2 import calculate_skyStats
 
 ####################### Source Extractor Files Templates #######################
 conv_name = "./temp_default_stats.conv"
@@ -106,7 +112,7 @@ def remove_temp_files(fs):
 def run_sourceExtractor(fitsfiles,
                         sextractorloc='/opt/local/bin/source-extractor',
                         psfexloc='/opt/local/bin/psfex',
-                        verbose=False,quietmode=False):
+                        verbose=False,quietmode=False,debugmode=False):
 
     # Create temporary files required for Source Extractor
     # These files are defined as global variables above
@@ -115,7 +121,6 @@ def run_sourceExtractor(fitsfiles,
 
     # Print useful information if verbose
     if verbose:
-        print('CLASS_STAR  1=star\nEllipticity 0=round')
         print('#####################################')
         print('###### RUNNING SOURCE EXTRACTOR #####')
         print('#####################################')
@@ -129,31 +134,42 @@ def run_sourceExtractor(fitsfiles,
     # Run Source Extractor one image at a time
     catfiles = []
     psffiles = []
+    catted_fitsfiles = []
     for f in fitsfiles:
 
         # Print separator
         if verbose:
             print('==============================================')
 
-        [f_psf] = measure_psf(fitsfiles, outdir='./', savepsffits=False,
-                                sextractorloc=sextractorloc,
-                                psfexloc=psfexloc,
-                                verbose=verbose,quietmode=True)
+        try:
+            if verbose:
+                print('Currently measuring PSF using source extractor and psfex...')
+            [f_psf] = measure_psf([f], outdir='./', savepsffits=False,
+                                    sextractorloc=sextractorloc,
+                                    psfexloc=psfexloc,
+                                    verbose=verbose,quietmode=True)
+        except:
+            print(f'\nSKIPPED: PSF measurement unsuccessful for {f}')
+            continue
 
         # Run Source Extractor on image
         try:
-            catalog_name = f.replace('.fits','.cat')
+            if verbose:
+                print('Currently running source extractor using .psf input...')
+            catalog_name = f.replace('.fits','_imageStats.cat')
             command =   f'{sextractorloc} -c {config_name} '\
                         f'-CATALOG_NAME {catalog_name} '\
                         f'-CATALOG_TYPE ASCII_HEAD '\
                         f'-PARAMETERS_NAME {params_name} -FILTER_NAME {conv_name} '\
                         f'-STARNNW_NAME {nnw_name} -MAG_ZEROPOINT 25.0 '\
                         f'-PSF_NAME {f_psf} -PSF_NMAX 1 -PATTERN_TYPE GAUSS-LAGUERRE '\
+                        f'-VERBOSE_TYPE {VERBOSE_TYPE} '\
                         f'{f}'
             if verbose:
                 print('Executing command: %s\n' % command)
             rval = subprocess.run(command.split(), check=True)
             catfiles.append(catalog_name)
+            catted_fitsfiles.append(f)
             os.remove(f_psf)
             if verbose:
                 print('Success!')
@@ -163,10 +179,10 @@ def run_sourceExtractor(fitsfiles,
     
     # Remove temporary files required for Source Extractor
     remove_temp_files([nnw_name,conv_name,params_name,config_name])
+    
+    return catfiles, catted_fitsfiles # end run_sourceExtractor
 
-    return catfiles
-
-def get_imageStats(catfiles,minfwhm=2.05,verbose=False,quietmode=False):
+def get_imageStats(catfiles,fitsfiles,minfwhm=2.05,verbose=False,quietmode=False,debugmode=False):
 
     FWHMs = []
     FWHM_stds = []
@@ -179,12 +195,11 @@ def get_imageStats(catfiles,minfwhm=2.05,verbose=False,quietmode=False):
 
     # Print useful information if verbose
     if verbose:
-        print('CLASS_STAR  1=star\nEllipticity 0=round')
         print('#####################################################')
         print('###### READING .cat FILES and CALCULATING STATS #####')
         print('#####################################################')
 
-    for catfile in catfiles:
+    for catfile, fitsfile in zip(catfiles,fitsfiles):
         # Print separator
         if verbose:
             print('==============================================')
@@ -209,8 +224,8 @@ def get_imageStats(catfiles,minfwhm=2.05,verbose=False,quietmode=False):
                         (df['FLAGS'] == 0) &
                         (df['FWHM_IMAGE'] > minfwhm)
                      ]
-        
-        # Calculate FWHMs,FWHM_stds,ELLIPs,ELLIP_stds,N_SRCs,N_SRCs_stars,BGRs,BGR_stds and save
+
+        # Calculate FWHMs,FWHM_stds,ELLIPs,ELLIP_stds,N_SRCs,N_SRCs_stars and save
         fwhm_avg = np.average(df_stars['FWHM_IMAGE'])
         fwhm_std = np.std(df_stars['FWHM_IMAGE'])
         FWHMs.append(fwhm_avg)
@@ -223,8 +238,14 @@ def get_imageStats(catfiles,minfwhm=2.05,verbose=False,quietmode=False):
         nsrcs_stars = len(df_stars['ELLIPTICITY'])
         N_SRCs.append(nsrcs)
         N_SRCs_stars.append(nsrcs_stars)
-        BGRs.append(0.0)
-        BGR_stds.append(0.0)
+
+
+        # Calculate BGRs,BGR_stds and save
+        sky, _, sky_pixel_std = calculate_skyStats(fitsfile,  
+                                                   sextractorloc=sextractorloc, 
+                                                   verbose=verbose, debugmode=debugmode, quietmode=True)
+        BGRs.append(sky)
+        BGR_stds.append(sky_pixel_std)
 
         if verbose:
             print(f'The Average FWHM (pixels) is  : {fwhm_avg:.5f}')  
@@ -233,39 +254,100 @@ def get_imageStats(catfiles,minfwhm=2.05,verbose=False,quietmode=False):
             print(f'The ELLIP std is              : {ellip_std:.5f}')
             print(f'The number of detected srcs   : {nsrcs}')
             print(f'The number of detected stars  : {nsrcs_stars}')
-            print(f'The BGR is                    : {0.0}')
-            print(f'The BGR std is                : {0.0}')
+            print(f'The BGR is                    : {sky}')
+            print(f'The BGR std is                : {sky_pixel_std}')
 
     # Print useful information if verbose
     if verbose:
         print('\nCLASS_STAR  1=star\nEllipticity 0=round')
 
-    
     return FWHMs,FWHM_stds,ELLIPs,ELLIP_stds,N_SRCs,N_SRCs_stars,BGRs,BGR_stds
 
 ####################### MAIN function #######################
 
-def calculate_imageStats(fitsfiles,
+def calculate_imageStats(fitsfiles,outfile=False,
                          sextractorloc='/opt/local/bin/source-extractor',
                          psfexloc='/opt/local/bin/psfex',
                          minfwhm=2.05,
-                         verbose=False,quietmode=False):
+                         verbose=False,quietmode=False,debugmode=False):
 
     # Run source extractor on all input fits files
-    catfiles = run_sourceExtractor(fitsfiles,
-                                    sextractorloc=sextractorloc,
-                                    psfexloc=psfexloc,
-                                    verbose=verbose,quietmode=quietmode)
-    print('*******')
-    print(catfiles)
-
+    if not quietmode:
+        print('During the running of calculate_imageStats, temporary .psf _imageStats.cat files will be created in the input file directory(s)')
+        print('During the running of calculate_imageStats, temporary files will also be created within the current directory.')
+        print('If the code does not successfully finish, check to remove these temporary files.\n\n')
+        print(f'Running source extractor, psfex, and source extractor again to get catalogs on {len(fitsfiles)} files...')
+        print(f'It should take about 30-60s per file ({len(fitsfiles)/2:0.2f} - {len(fitsfiles):0.2f} mins in total) depending on your computer.')
+        tick = time.perf_counter()
+    catfiles, catted_fitsfiles = run_sourceExtractor(fitsfiles,
+                                                     sextractorloc=sextractorloc,
+                                                     psfexloc=psfexloc,
+                                                     verbose=verbose,quietmode=quietmode,debugmode=debugmode)
+    if not quietmode:
+        tock = time.perf_counter()
+        print(f'Getting catalogs took {(tock-tick)/60.:0.2f} minutes')
+        
+    if not quietmode:
+        print('Reading catalogs to get image statistics, this ...')
+        tick = time.perf_counter()
     # Calculate average FWHM, average ELLIPTICITY, # sources, background of each input fits file
     (FWHMs,FWHM_stds,
     ELLIPs,ELLIP_stds,
     N_SRCs,N_SRCs_stars,
-    BGRs,BGR_stds)          = get_imageStats(catfiles,
+    BGRs,BGR_stds)          = get_imageStats(catfiles,catted_fitsfiles,
                                              minfwhm=minfwhm,
-                                             verbose=verbose,quietmode=quietmode)
+                                             verbose=verbose,quietmode=quietmode,debugmode=debugmode)
+    if not quietmode:
+        tock = time.perf_counter()
+        print(f'Reading catalogs and calculating image stats took {(tock-tick)/60.:0.2f} minutes')
+
+    # Save if required to
+    if outfile:
+        # Format numbers as desired
+        s_FWHMs             = [format(x,'.4f') for x in FWHMs]
+        s_FWHMs.insert(0,'FWHM')
+        s_FWHM_stds         = [format(x,'.4f') for x in FWHM_stds]
+        s_FWHM_stds.insert(0,'FWHM_ERR')
+        s_ELLIPs            = [format(x,'.4f') for x in ELLIPs]
+        s_ELLIPs.insert(0,'ELLIP')
+        s_ELLIP_stds        = [format(x,'.4f') for x in ELLIP_stds]
+        s_ELLIP_stds.insert(0,'ELLIP_ERR')
+        s_N_SRCs            = [format(x,'d') for x in N_SRCs]
+        s_N_SRCs.insert(0,'N_SRCS')
+        s_N_SRCs_stars      = [format(x,'d') for x in N_SRCs_stars]
+        s_N_SRCs_stars.insert(0,'N_SRCS_STAR')
+        s_BGRs              = [format(x,'.4f') for x in BGRs]
+        s_BGRs.insert(0,'BGR')
+        s_BGR_stds          = [format(x,'.4f') for x in BGR_stds]
+        s_BGR_stds.insert(0,'BGR_ERR')
+        catted_basenames    = [ntpath.basename(x) for x in catted_fitsfiles]
+        catted_basenames.insert(0,'FILENAME')
+        catted_fitsfiles.insert(0,'FULLPATH')
+        savetext            = np.transpose([catted_basenames,
+                                            s_FWHMs,s_FWHM_stds,
+                                            s_ELLIPs,s_ELLIP_stds,
+                                            s_N_SRCs,s_N_SRCs_stars,
+                                            s_BGRs,s_BGR_stds,
+                                            catted_fitsfiles])
+        h                   = '0. Filename\n'\
+                              '1. FWHM (pixels)\n'\
+                              '2. FWHM standard deviation (pixels)\n'\
+                              '3. Ellipticity, between 0 and 1, 0=round\n'\
+                              '4. Ellipticity standard deivtation\n'\
+                              '5. Number of sources detected\n'\
+                              '6. Number of sources determined to be stars\n'\
+                              '7. Background (median of all pixels outside of grown source extractor segmentation map) (ADU)\n'\
+                              '8. Background standard deviation (ADU)\n'\
+                              '9. Full path'
+        np.savetxt(outfile, (savetext),fmt='%s',header=h)
+        if not quietmode:
+            print(f'\nSaved: {outfile}')
+            print(f'This file can be read into python with t=astropy.io.ascii.read({outfile})')
+            print("d['KEYS'] gets columns where KEYS are: FILENAME FWHM FWHM_ERR ELLIP ELLIP_ERR N_SRCS N_SRCS_STAR BGR BGR_ERR FULLPATH")
+
+    # Remove catalog files if not in debug mode
+    if not debugmode:
+        remove_temp_files(catfiles)
 
     return FWHMs,FWHM_stds,ELLIPs,ELLIP_stds,N_SRCs,N_SRCs_stars,BGRs,BGR_stds
 
@@ -284,13 +366,15 @@ if __name__ == "__main__":
     # Non-mandatory options without arguments
     quietmode       = arguments['--quiet']
     verbose         = arguments['--verbose']
+    debugmode       = arguments['--debug']
     sextractorloc   = arguments['--sextractor']
     psfexloc        = arguments['--psfex']
-    minfwhm         = float(arguments['--minfwhm'])
-    
+    minfwhm         = float(arguments['--minfwhm']) 
+    outfile         = arguments['--out']
+
     # Calculate
-    _ = calculate_imageStats(fitsfiles,
+    _ = calculate_imageStats(fitsfiles,outfile=outfile,
                              sextractorloc=sextractorloc,
                              psfexloc=psfexloc,
                              minfwhm=minfwhm,
-                             verbose=verbose,quietmode=quietmode)
+                             verbose=verbose,quietmode=quietmode,debugmode=debugmode)
