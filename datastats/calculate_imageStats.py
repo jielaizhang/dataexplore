@@ -19,6 +19,15 @@ Options:
 
 Examples:
     python calculate_imageStats.py *fits -o ./outfile.txt
+    from datastats.calculate_imageStats import calculate_imageStats
+        (catted_fitsfiles,
+        FWHMs,FWHM_stds,ELLIPs,ELLIP_stds,
+        N_SRCs,N_SRCs_stars,BGRs,BGR_stds) = calculate_imageStats(fitsfiles,outfile='./stats.txt',
+                                                                    sextractorloc='/opt/local/bin/source-extractor',
+                                                                    psfexloc='/opt/local/bin/psfex',
+                                                                    minfwhm=2.05,
+                                                                    verbose=False,quietmode=False,
+                                                                    debugmode=False)
 """
 
 import docopt, os
@@ -263,6 +272,61 @@ def get_imageStats(catfiles,fitsfiles,minfwhm=2.05,verbose=False,quietmode=False
 
     return FWHMs,FWHM_stds,ELLIPs,ELLIP_stds,N_SRCs,N_SRCs_stars,BGRs,BGR_stds
 
+
+
+
+
+def write_imageStats_to_file(outfile,catted_fitsfiles,
+                            FWHMs,FWHM_stds,ELLIPs,ELLIP_stds,
+                            N_SRCs,N_SRCs_stars,BGRs,BGR_stds,
+                            quietmode=False):
+    # Format numbers as desired, add on "heading" per column
+    s_FWHMs             = [format(x,'.4f') for x in FWHMs]
+    s_FWHMs.insert(0,'FWHM')
+    s_FWHM_stds         = [format(x,'.4f') for x in FWHM_stds]
+    s_FWHM_stds.insert(0,'FWHM_ERR')
+    s_ELLIPs            = [format(x,'.4f') for x in ELLIPs]
+    s_ELLIPs.insert(0,'ELLIP')
+    s_ELLIP_stds        = [format(x,'.4f') for x in ELLIP_stds]
+    s_ELLIP_stds.insert(0,'ELLIP_ERR')
+    s_N_SRCs            = [format(x,'d') for x in N_SRCs]
+    s_N_SRCs.insert(0,'N_SRCS')
+    s_N_SRCs_stars      = [format(x,'d') for x in N_SRCs_stars]
+    s_N_SRCs_stars.insert(0,'N_SRCS_STAR')
+    s_BGRs              = [format(x,'.4f') for x in BGRs]
+    s_BGRs.insert(0,'BGR')
+    s_BGR_stds          = [format(x,'.4f') for x in BGR_stds]
+    s_BGR_stds.insert(0,'BGR_ERR')
+    catted_basenames    = [ntpath.basename(x) for x in catted_fitsfiles]
+    catted_basenames.insert(0,'FILENAME')
+    catted_fitsfiles.insert(0,'FULLPATH')
+    # Transpose for numpy.savetxt
+    savetext            = np.transpose([catted_basenames,
+                                        s_FWHMs,s_FWHM_stds,
+                                        s_ELLIPs,s_ELLIP_stds,
+                                        s_N_SRCs,s_N_SRCs_stars,
+                                        s_BGRs,s_BGR_stds,
+                                        catted_fitsfiles])
+    h                   = '0. Filename\n'\
+                          '1. FWHM (pixels)\n'\
+                          '2. FWHM standard deviation (pixels)\n'\
+                          '3. Ellipticity, between 0 and 1, 0=round\n'\
+                          '4. Ellipticity standard deivtation\n'\
+                          '5. Number of sources detected\n'\
+                          '6. Number of sources determined to be stars\n'\
+                          '7. Background (median of all pixels outside of grown source extractor segmentation map) (ADU)\n'\
+                          '8. Background standard deviation (ADU)\n'\
+                          '9. Full path'
+    # Save
+    np.savetxt(outfile, (savetext),fmt='%s',header=h)
+    # Print info it not quietmode
+    if not quietmode:
+        print(f'\nSaved: {outfile}')
+        print(f'This file can be read into python with t=astropy.io.ascii.read({outfile})')
+        print("t['KEYS'] gets columns where KEYS are: FILENAME FWHM FWHM_ERR ELLIP ELLIP_ERR N_SRCS N_SRCS_STAR BGR BGR_ERR FULLPATH")
+
+    return None
+
 ####################### MAIN function #######################
 
 def calculate_imageStats(fitsfiles,outfile=False,
@@ -303,53 +367,16 @@ def calculate_imageStats(fitsfiles,outfile=False,
 
     # Save if required to
     if outfile:
-        # Format numbers as desired
-        s_FWHMs             = [format(x,'.4f') for x in FWHMs]
-        s_FWHMs.insert(0,'FWHM')
-        s_FWHM_stds         = [format(x,'.4f') for x in FWHM_stds]
-        s_FWHM_stds.insert(0,'FWHM_ERR')
-        s_ELLIPs            = [format(x,'.4f') for x in ELLIPs]
-        s_ELLIPs.insert(0,'ELLIP')
-        s_ELLIP_stds        = [format(x,'.4f') for x in ELLIP_stds]
-        s_ELLIP_stds.insert(0,'ELLIP_ERR')
-        s_N_SRCs            = [format(x,'d') for x in N_SRCs]
-        s_N_SRCs.insert(0,'N_SRCS')
-        s_N_SRCs_stars      = [format(x,'d') for x in N_SRCs_stars]
-        s_N_SRCs_stars.insert(0,'N_SRCS_STAR')
-        s_BGRs              = [format(x,'.4f') for x in BGRs]
-        s_BGRs.insert(0,'BGR')
-        s_BGR_stds          = [format(x,'.4f') for x in BGR_stds]
-        s_BGR_stds.insert(0,'BGR_ERR')
-        catted_basenames    = [ntpath.basename(x) for x in catted_fitsfiles]
-        catted_basenames.insert(0,'FILENAME')
-        catted_fitsfiles.insert(0,'FULLPATH')
-        savetext            = np.transpose([catted_basenames,
-                                            s_FWHMs,s_FWHM_stds,
-                                            s_ELLIPs,s_ELLIP_stds,
-                                            s_N_SRCs,s_N_SRCs_stars,
-                                            s_BGRs,s_BGR_stds,
-                                            catted_fitsfiles])
-        h                   = '0. Filename\n'\
-                              '1. FWHM (pixels)\n'\
-                              '2. FWHM standard deviation (pixels)\n'\
-                              '3. Ellipticity, between 0 and 1, 0=round\n'\
-                              '4. Ellipticity standard deivtation\n'\
-                              '5. Number of sources detected\n'\
-                              '6. Number of sources determined to be stars\n'\
-                              '7. Background (median of all pixels outside of grown source extractor segmentation map) (ADU)\n'\
-                              '8. Background standard deviation (ADU)\n'\
-                              '9. Full path'
-        np.savetxt(outfile, (savetext),fmt='%s',header=h)
-        if not quietmode:
-            print(f'\nSaved: {outfile}')
-            print(f'This file can be read into python with t=astropy.io.ascii.read({outfile})')
-            print("d['KEYS'] gets columns where KEYS are: FILENAME FWHM FWHM_ERR ELLIP ELLIP_ERR N_SRCS N_SRCS_STAR BGR BGR_ERR FULLPATH")
+        write_imageStats_to_file(outfile,catted_fitsfiles,
+                                 FWHMs,FWHM_stds,ELLIPs,ELLIP_stds,
+                                 N_SRCs,N_SRCs_stars,BGRs,BGR_stds,
+                                 quietmode=quietmode)
 
     # Remove catalog files if not in debug mode
     if not debugmode:
         remove_temp_files(catfiles)
 
-    return FWHMs,FWHM_stds,ELLIPs,ELLIP_stds,N_SRCs,N_SRCs_stars,BGRs,BGR_stds
+    return catted_fitsfiles,FWHMs,FWHM_stds,ELLIPs,ELLIP_stds,N_SRCs,N_SRCs_stars,BGRs,BGR_stds
 
 ############################################################################
 ####################### BODY OF PROGRAM STARTS HERE ########################
