@@ -115,12 +115,12 @@ def subtract_image(fitsfile1,fitsfile2,saveloc=False,badpixmapsave=False,overwri
     naxis1,naxis2                         = np.shape(d)
     box_size                              = int(min(naxis1,naxis2)/6.)
     print_debug_string(f'Box size for calculating sky: {box_size}',debugmode=debugmode)
-    sky1, sky_error1, sky_pixel_variance1 = calculate_skyStats(fitsfile1, place_boxes = box_size, n_iterations = 10, sextractorloc=sextractorloc, verbose=verbose, debugmode=debugmode, quietmode=quietmode)
-    sky2, sky_error2, sky_pixel_variance2 = calculate_skyStats(fitsfile2, place_boxes = box_size, n_iterations = 10, sextractorloc=sextractorloc, verbose=verbose, debugmode=debugmode, quietmode=quietmode)    
+    sky1, sky_error1, sky_pixel_std1 = calculate_skyStats(fitsfile1, place_boxes = box_size, n_iterations = 10, sextractorloc=sextractorloc, verbose=verbose, debugmode=debugmode, quietmode=quietmode)
+    sky2, sky_error2, sky_pixel_std2 = calculate_skyStats(fitsfile2, place_boxes = box_size, n_iterations = 10, sextractorloc=sextractorloc, verbose=verbose, debugmode=debugmode, quietmode=quietmode)    
 
     # Get parameters required by hotpants: actual input parameters calculated via FWHM_larger, and sky values of input images
-    tl  = sky1-5*sky_pixel_variance1
-    il  = sky2-5*sky_pixel_variance2
+    tl  = sky1-5*sky_pixel_std1
+    il  = sky2-5*sky_pixel_std2
     r   = 2.5*FWHM_larger
     rss = 2*2.5*FWHM_larger
 
