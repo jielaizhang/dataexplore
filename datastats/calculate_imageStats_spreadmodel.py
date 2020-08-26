@@ -3,12 +3,13 @@
 """calculate_imageStats_spreadmodel.py -- read in fits files and calculate the average FWHM, average ELLIPTICITY, # sources, background of the image by using source extractor. 
 To do: write another one that is calculate_imageStats.py
 
-Usage: calculate_imageStats_spreadmodel [-q] [--debug] [-h] [-v] [-s LOC] [-p LOC] [--minfwhm FLOAT] [-o FILE] <fitsfiles>...
+Usage: calculate_imageStats_spreadmodel [-h] [-q] [--debug] [--savecats LOC] [-v] [-s LOC] [-p LOC] [--minfwhm FLOAT] [-o FILE] <fitsfiles>...
 
 Options:
     -h, --help                  Show this screen
     -q, --quiet                 Quiet mode, suppress printout of parameters measured.
-    --debug                     Show extra information and save extra files [default: False]
+    --debug                     Show extra information and save extra files, including the .cat files [default: False]
+    --savecats LOC              Do not remove the .cat files after this script finishes, save it in this dir. [default: False]
     -v, --verbose               Show extra information [default: False]     
     -s LOC, --sextractor LOC    Location of source extractor [default: /opt/local/bin/source-extractor] 
     -p LOC, --psfex LOC         Location of PSFEx [default: /opt/local/bin/psfex]
@@ -34,7 +35,7 @@ import subprocess
 from astropy.io import ascii
 import pandas as pd
 import numpy as np
-import ntpath
+import ntpath, shutil
 import time
 
 # Jielai Modules
@@ -82,13 +83,43 @@ f_nnw = '''NNW
  0.00000e+00 
  1.00000e+00'''
 
-f_params='''FLUX_AUTO
-CLASS_STAR
-FWHM_IMAGE
-ELLIPTICITY
+#f_params='''FLUX_AUTO
+#CLASS_STAR
+#FWHM_IMAGE
+#ELLIPTICITY
+#FLAGS
+#SPREAD_MODEL
+#MAG_MODEL'''
+
+f_params='''NUMBER
+FLUX_AUTO
+FLUXERR_AUTO
+FLUX_RADIUS
+FLUX_APER
+FLUXERR_APER
+X_IMAGE
+Y_IMAGE
+X_WORLD
+Y_WORLD
+FLUX_RADIUS
 FLAGS
+CLASS_STAR
+MAG_AUTO
+MAGERR_AUTO
+MAG_ISO
+MAGERR_ISO
+BACKGROUND
+A_IMAGE
+B_IMAGE
+THETA_IMAGE
+THETA_SKY
+ISOAREA_IMAGE
+FWHM_IMAGE
+ISOAREAF_IMAGE
+ELLIPTICITY
 SPREAD_MODEL
-MAG_MODEL'''
+MAG_MODEL
+'''
 
 ####################### Auxiliary Functions #######################
 def create_temp_files_for_SourceExtractor(f_nnw,f_conv,f_params,
@@ -319,7 +350,7 @@ def write_imageStats_to_file(outfile,catted_fitsfiles,
     np.savetxt(outfile, (savetext),fmt='%s',header=h)
     # Print info it not quietmode
     if not quietmode:
-        print(f'\nSaved: {outfile}')
+        print(f'\nSAVED: {outfile}')
         print(f'This file can be read into python with t=astropy.io.ascii.read({outfile})')
         print("t['KEYS'] gets columns where KEYS are: FILENAME FWHM FWHM_ERR ELLIP ELLIP_ERR N_SRCS N_SRCS_STAR BGR BGR_ERR FULLPATH")
 
@@ -331,7 +362,8 @@ def calculate_imageStats_spreadmodel(fitsfiles,outfile=False,
                                     sextractorloc='/opt/local/bin/source-extractor',
                                     psfexloc='/opt/local/bin/psfex',
                                     minfwhm=2.05,
-                                    verbose=False,quietmode=False,debugmode=False):
+                                    verbose=False,quietmode=False,debugmode=False,
+                                    savecats_dir=False):
 
     # Run source extractor on all input fits files
     if not quietmode:
@@ -371,8 +403,15 @@ def calculate_imageStats_spreadmodel(fitsfiles,outfile=False,
                                  quietmode=quietmode)
 
     # Remove catalog files if not in debug mode
-    if not debugmode:
+    if (not debugmode) & (not savecats_dir):
         remove_temp_files(catfiles)
+    if savecats_dir:
+        for catfile in catfiles:
+            shutil.move(catfile,savecats_dir)
+            if verbose:
+                print(f'{catfile} --> {savecats_dir}')
+            elif not quietmode:
+                print(f'SAVED: Cat files --> {savecats_dir}.')
 
     return catted_fitsfiles,FWHMs,FWHM_stds,ELLIPs,ELLIP_stds,N_SRCs,N_SRCs_stars,BGRs,BGR_stds
 
@@ -392,6 +431,7 @@ if __name__ == "__main__":
     quietmode       = arguments['--quiet']
     verbose         = arguments['--verbose']
     debugmode       = arguments['--debug']
+    savecats_dir    = arguments['--savecats']
     sextractorloc   = arguments['--sextractor']
     psfexloc        = arguments['--psfex']
     minfwhm         = float(arguments['--minfwhm']) 
@@ -402,4 +442,5 @@ if __name__ == "__main__":
                                         sextractorloc=sextractorloc,
                                         psfexloc=psfexloc,
                                         minfwhm=minfwhm,
-                                        verbose=verbose,quietmode=quietmode,debugmode=debugmode)
+                                        verbose=verbose,quietmode=quietmode,debugmode=debugmode,
+                                        savecats_dir=savecats_dir)
