@@ -19,7 +19,7 @@ Required input
     fitsimage - image for which background stats are desired.
 
 Usage:
-    calculate_skystats.py [-h] [-q] [-v] [--debug] [--sextractorloc LOC] [-b STRING] [-a STRING] [--annulusallover STRING] [-n INT] [-m FILE] <fitsimage>
+    calculate_skystats.py [-h] [-q] [-v] [--debug] [--sextractorloc LOC] [-b STRING] [-a STRING] [--annulusallover STRING] [-n INT] [-m FILE] [--checkims] <fitsimage>
 
 Options:
     -h, --help                          Print this screen.
@@ -42,13 +42,13 @@ Example:
     python calculate_skyStats.py -v --annulusallover 500,500,150,150,500,500,200,200 -n 100 fitsimage.fits
     Python:
     from datastats.calculate_skyStats2 import calculate_skyStats
-    sky, sky_error, sky_pixel_variance = calculate_skyStats( fitsimage, 
-                                                             place_boxes          = False|boxsize, 
-                                                             place_annuli         = False|'xc1,yc1,a1,b1,ang1,xc2,yc2,a2,b2,ang2', 
-                                                             place_annuli_allover = False|'xc1,yc1,a1,b1,ang1,xc2,yc2,a2,b2,ang2',
-                                                             n_iterations         = 100 (or some other number),
-                                                             input_mask_file      = False|'./mask.fits',
-                                                             verbose = False|True, debugmode = False|True)
+    sky, sky_error, sky_pixel_std = calculate_skyStats( fitsimage, 
+                                                        place_boxes          = False|boxsize, 
+                                                        place_annuli         = False|'xc1,yc1,a1,b1,ang1,xc2,yc2,a2,b2,ang2', 
+                                                        place_annuli_allover = False|'xc1,yc1,a1,b1,ang1,xc2,yc2,a2,b2,ang2',
+                                                        n_iterations         = 100 (or some other number),
+                                                        input_mask_file      = False|'./mask.fits',
+                                                        verbose = False|True, debugmode = False|True)
 """
 
 import docopt
@@ -171,7 +171,12 @@ def plot_contourOnImage(fitsfile,total_mask_bool,verbose=False):
     contour_fits.header['CD1_2']    = h['CD1_2']
     contour_fits.header['CD2_1']    = h['CD2_1']
     contour_fits.header['CD2_2']    = h['CD2_2']
-    contour_fits.header['EQUINOX']  = h['EQUINOX']
+    try:
+        contour_fits.header['EQUINOX']  = h['EQUINOX']
+    except:
+        print('IMPORTANT NOTE!!!! Equinox of input image assumed to be 2000.0')
+        print('                   This is just for plotting checkim purposes')
+        contour_fits.header['EQUINOX']  = 2000.0
 
     # Save contour_image to file, with fitsfile WCS
     total_mask_fitsWithWCS = './contour.fits'
@@ -380,7 +385,7 @@ def calculate_sky_box(fitsimage, boxsize_pix, n_iterations, input_mask_file=Fals
 
     sky,sky_error,sky_pixel_std = calculate_stats_andPrint(image,total_mask_bool,sky_counts,sky_counts_avg,pix_counts,verbose=verbose,quietmode=quietmode)
 
-    return sky, sky_error, sky_pixel_std
+    return sky, sky_error, sky_pixel_std # end calculate_sky_box
 
 def calculate_sky_annuli(fitsimage,annulusparams,n_iterations,input_mask_file = False,checkims=False,verbose=False, quietmode=False):
     '''Place n_iterations number of elliptical annuli randomly in image with total_mask.
@@ -511,7 +516,7 @@ def calculate_sky_annuli(fitsimage,annulusparams,n_iterations,input_mask_file = 
 
     sky,sky_error,sky_pixel_std = calculate_stats_andPrint(image,total_mask_bool,sky_counts,sky_counts_avg,pix_counts,verbose=verbose, quietmode=quietmode)
 
-    return sky, sky_error, sky_pixel_std
+    return sky, sky_error, sky_pixel_std # end calculate_sky_annuli
 
 def calculate_sky_annuli_allover(fitsimage,annulusparams,n_iterations,input_mask_file = False,checkims=False,sextractorloc='/opt/local/bin/source-extractor',verbose=False, quietmode=False):
     '''Place n_iterations number of elliptical annuli randomly in image with total_mask.
@@ -526,6 +531,42 @@ def calculate_sky_annuli_allover(fitsimage,annulusparams,n_iterations,input_mask
     if verbose:
         print('#Number of attempts where average sky count in box/annuli was not finite: ',str(n_notfinite))
 
+def calculate_sky_allunmaked(fitsimage,input_mask_file=False,checkims=False, sextractorloc='/opt/local/bin/source-extractor',verbose=False, quietmode=False):
+    # Read in image and header
+    image,h = fits.getdata(fitsimage, header=True)
+
+    # Make source mask
+    source_mask                    = create_sourceMask(fitsimage,sextractorloc=sextractorloc)
+
+    # Combine with input_mask if input_mask_file supplied
+    total_mask_bool = combine_masks(source_mask,input_mask_file,verbose=verbose)  
+
+    # Plot total_mask as a contour on fits image
+    if checkims:
+        plot_contourOnImage(fitsimage,total_mask_bool,verbose=verbose)
+
+    # Calculate sky stats
+    masked_image  = np.ma.masked_array(image,mask=total_mask_bool)
+    sky           = np.ma.median(masked_image)
+    sky_error     = np.ma.std(masked_image)
+    sky_pixel_std = sky_error
+
+    if not quietmode:
+        printme = '------------------'
+        print(printme)
+        printme = 'PRINTING SKY STATS'
+        print(printme)
+        printme = '------------------'
+        print(printme)
+
+        printme = f'\n# SKY: Average of sky box/annuli medians      : {sky:.4f}'
+        print(printme)
+        printme = f'# SKY_ERROR: STD of sky box/annuli medians    : {sky_error:.4f}'
+        print(printme)
+        printme = f'# SKY_PIXEL_STD: STD of all non-masked pixels : {sky_pixel_std:.4f}\n'
+        print(printme) 
+
+    return sky, sky_error, sky_pixel_std
 
 ###############################
 # ======= Main function =======
@@ -577,7 +618,7 @@ def calculate_skyStats( fitsimage,
     # Standard deviation of these medians
     if place_boxes:
         boxsize_pix     = int(place_boxes)
-        sky, sky_error, sky_pixel_variance = calculate_sky_box(fitsimage,boxsize_pix, n_iterations, input_mask_file = input_mask_file, checkims=checkims, sextractorloc=sextractorloc, verbose=verbose, quietmode=quietmode)
+        sky, sky_error, sky_pixel_std = calculate_sky_box(fitsimage,boxsize_pix, n_iterations, input_mask_file = input_mask_file, checkims=checkims, sextractorloc=sextractorloc, verbose=verbose, quietmode=quietmode)
 
     # ===== --annulus =====
     # Place X random X pixel elliptical annuli 
@@ -585,7 +626,7 @@ def calculate_skyStats( fitsimage,
     # Standard deviation of these medians
     if place_annuli:
         annulusparams = place_annuli
-        sky, sky_error, sky_pixel_variance = calculate_sky_annuli(fitsimage,annulusparams,n_iterations,input_mask_file=input_mask_file,checkims=checkims,sextractorloc=sextractorloc, verbose=verbose, quietmode=quietmode)
+        sky, sky_error, sky_pixel_std = calculate_sky_annuli(fitsimage,annulusparams,n_iterations,input_mask_file=input_mask_file,checkims=checkims,sextractorloc=sextractorloc, verbose=verbose, quietmode=quietmode)
 
     # ===== --annulusallover =====
     # Place X random X pixel elliptical annuli 
@@ -593,12 +634,13 @@ def calculate_skyStats( fitsimage,
     # Standard deviation of these medians
     if place_annuli_allover:
         annulusparams = place_annuli_allover
-        sky, sky_error, sky_pixel_variance = calculate_sky_annuli_allover(fitsimage,annulusparams,n_iterations,input_mask_file=input_mask_file,checkims=checkims,sextractorloc=sextractorloc,verbose=verbose, quietmode=quietmode)
+        sky, sky_error, sky_pixel_std = calculate_sky_annuli_allover(fitsimage,annulusparams,n_iterations,input_mask_file=input_mask_file,checkims=checkims,sextractorloc=sextractorloc,verbose=verbose, quietmode=quietmode)
 
     # ===== no option set, just calculate stats for all unmasked pixels =====
+    if (not  place_boxes) and (not place_annuli) and (not place_annuli_allover):        
+        sky, sky_error, sky_pixel_std = calculate_sky_allunmaked(fitsimage,input_mask_file=input_mask_file,checkims=checkims,sextractorloc=sextractorloc,verbose=verbose, quietmode=quietmode)
 
-
-    return sky, sky_error, sky_pixel_variance
+    return sky, sky_error, sky_pixel_std
 
 
 
@@ -611,7 +653,7 @@ if __name__=='__main__':
     arguments = docopt.docopt(__doc__)
     
     fitsimage            = arguments['<fitsimage>']
-    quietmode            = arguments['<quietmode>']
+    quietmode            = arguments['--quietmode']
     verbose              = arguments['--verbose']
     debugmode            = arguments['--debug']
     sextractorloc        = arguments['--sextractorloc']
