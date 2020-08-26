@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
-"""calculate_imageStats.py -- read in fits files and calculate the average FWHM, average ELLIPTICITY, # sources, background of the image by using source extractor. 
-To do: write out text file of stats
-     : rename to calculate_imageStats_spreadmodel.py
-     : write another one that is calculate_imageStats.py
+"""calculate_imageStats_spreadmodel.py -- read in fits files and calculate the average FWHM, average ELLIPTICITY, # sources, background of the image by using source extractor. 
+To do: write another one that is calculate_imageStats.py
 
-Usage: calculate_imageStats [-q] [--debug] [-h] [-v] [-s LOC] [-p LOC] [--minfwhm FLOAT] [-o FILE] <fitsfiles>...
+Usage: calculate_imageStats_spreadmodel [-q] [--debug] [-h] [-v] [-s LOC] [-p LOC] [--minfwhm FLOAT] [-o FILE] <fitsfiles>...
 
 Options:
     -h, --help                  Show this screen
@@ -18,16 +16,16 @@ Options:
     -o FILE, --out FILE         Save stats on each input image in this file 
 
 Examples:
-    python calculate_imageStats.py *fits -o ./outfile.txt
-    from datastats.calculate_imageStats import calculate_imageStats
+    python calculate_imageStats_spreadmodel.py *fits -o ./outfile.txt
+    from datastats.calculate_imageStats_spreadmodel import calculate_imageStats_spreadmodel
         (catted_fitsfiles,
         FWHMs,FWHM_stds,ELLIPs,ELLIP_stds,
-        N_SRCs,N_SRCs_stars,BGRs,BGR_stds) = calculate_imageStats(fitsfiles,outfile='./stats.txt',
-                                                                    sextractorloc='/opt/local/bin/source-extractor',
-                                                                    psfexloc='/opt/local/bin/psfex',
-                                                                    minfwhm=2.05,
-                                                                    verbose=False,quietmode=False,
-                                                                    debugmode=False)
+        N_SRCs,N_SRCs_stars,BGRs,BGR_stds) = calculate_imageStats_spreadmodel(fitsfiles,outfile='./stats.txt',
+                                                                                sextractorloc='/opt/local/bin/source-extractor',
+                                                                                psfexloc='/opt/local/bin/psfex',
+                                                                                minfwhm=2.05,
+                                                                                verbose=False,quietmode=False,
+                                                                                debugmode=False)
 """
 
 import docopt, os
@@ -329,16 +327,16 @@ def write_imageStats_to_file(outfile,catted_fitsfiles,
 
 ####################### MAIN function #######################
 
-def calculate_imageStats(fitsfiles,outfile=False,
-                         sextractorloc='/opt/local/bin/source-extractor',
-                         psfexloc='/opt/local/bin/psfex',
-                         minfwhm=2.05,
-                         verbose=False,quietmode=False,debugmode=False):
+def calculate_imageStats_spreadmodel(fitsfiles,outfile=False,
+                                    sextractorloc='/opt/local/bin/source-extractor',
+                                    psfexloc='/opt/local/bin/psfex',
+                                    minfwhm=2.05,
+                                    verbose=False,quietmode=False,debugmode=False):
 
     # Run source extractor on all input fits files
     if not quietmode:
-        print('During the running of calculate_imageStats, temporary .psf _imageStats.cat files will be created in the input file directory(s)')
-        print('During the running of calculate_imageStats, temporary files will also be created within the current directory.')
+        print('During the running of calculate_imageStats_spreadmodel, temporary .psf _imageStats.cat files will be created in the input file directory(s)')
+        print('During the running of calculate_imageStats_spreadmodel, temporary files will also be created within the current directory.')
         print('If the code does not successfully finish, check to remove these temporary files.\n\n')
         print(f'Running source extractor, psfex, and source extractor again to get catalogs on {len(fitsfiles)} files...')
         print(f'It should take about 30-60s per file ({len(fitsfiles)/2:0.2f} - {len(fitsfiles):0.2f} mins in total) depending on your computer.')
@@ -400,8 +398,8 @@ if __name__ == "__main__":
     outfile         = arguments['--out']
 
     # Calculate
-    _ = calculate_imageStats(fitsfiles,outfile=outfile,
-                             sextractorloc=sextractorloc,
-                             psfexloc=psfexloc,
-                             minfwhm=minfwhm,
-                             verbose=verbose,quietmode=quietmode,debugmode=debugmode)
+    _ = calculate_imageStats_spreadmodel(fitsfiles,outfile=outfile,
+                                        sextractorloc=sextractorloc,
+                                        psfexloc=psfexloc,
+                                        minfwhm=minfwhm,
+                                        verbose=verbose,quietmode=quietmode,debugmode=debugmode)
