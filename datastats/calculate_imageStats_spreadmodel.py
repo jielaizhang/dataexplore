@@ -17,7 +17,7 @@ Options:
     -o FILE, --out FILE         Save stats on each input image in this file 
 
 Examples:
-    python calculate_imageStats_spreadmodel.py *fits -o ./outfile.txt
+    python calculate_imageStats_spreadmodel.py *fits -o ./outfile.txt --savecats ../cats
     from datastats.calculate_imageStats_spreadmodel import calculate_imageStats_spreadmodel
         (catted_fitsfiles,
         FWHMs,FWHM_stds,ELLIPs,ELLIP_stds,
@@ -145,6 +145,11 @@ def create_temp_files_for_SourceExtractor(f_nnw,f_conv,f_params,
 def remove_temp_files(fs):
     for f in fs:
         os.remove(f)
+    return None
+
+def mkdir_ifnotexist(directory):
+    if not os.path.isdir(directory):
+        os.makedirs(directory)
     return None
 
 def run_sourceExtractor(fitsfiles,
@@ -406,12 +411,17 @@ def calculate_imageStats_spreadmodel(fitsfiles,outfile=False,
     if (not debugmode) & (not savecats_dir):
         remove_temp_files(catfiles)
     if savecats_dir:
+        mkdir_ifnotexist(savecats_dir)
         for catfile in catfiles:
-            shutil.move(catfile,savecats_dir)
-            if verbose:
-                print(f'{catfile} --> {savecats_dir}')
-            elif not quietmode:
-                print(f'SAVED: Cat files --> {savecats_dir}.')
+            try:
+                shutil.move(catfile,savecats_dir)
+                if verbose:
+                    print(f'{catfile} --> {savecats_dir}')
+                elif not quietmode:
+                    print(f'SAVED: Cat files --> {savecats_dir}.')
+            except:
+                if not quietmode:
+                    print(f'NOT MOVED (maybe already there?) Cat files --> {savecats_dir}.')
 
     return catted_fitsfiles,FWHMs,FWHM_stds,ELLIPs,ELLIP_stds,N_SRCs,N_SRCs_stars,BGRs,BGR_stds
 
