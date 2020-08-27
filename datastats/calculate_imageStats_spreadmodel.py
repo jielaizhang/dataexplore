@@ -269,19 +269,32 @@ def get_imageStats(catfiles,fitsfiles,minfwhm=2.05,verbose=False,quietmode=False
                      ]
 
         # Calculate FWHMs,FWHM_stds,ELLIPs,ELLIP_stds,N_SRCs,N_SRCs_stars and save
-        fwhm_avg = np.average(df_stars['FWHM_IMAGE'])
-        fwhm_std = np.std(df_stars['FWHM_IMAGE'])
-        FWHMs.append(fwhm_avg)
-        FWHM_stds.append(fwhm_std)
-        ellip_avg = np.average(df_stars['ELLIPTICITY'])
-        ellip_std = np.std(df_stars['ELLIPTICITY'])
-        ELLIPs.append(ellip_avg)
-        ELLIP_stds.append(ellip_std)
-        nsrcs = len(df['ELLIPTICITY'])
-        nsrcs_stars = len(df_stars['ELLIPTICITY'])
-        N_SRCs.append(nsrcs)
-        N_SRCs_stars.append(nsrcs_stars)
-
+        if len(df_stars['FWHM_IMAGE'])>0:
+            fwhm_avg = np.average(df_stars['FWHM_IMAGE'])
+            fwhm_std = np.std(df_stars['FWHM_IMAGE'])
+            FWHMs.append(fwhm_avg)
+            FWHM_stds.append(fwhm_std)
+            ellip_avg = np.average(df_stars['ELLIPTICITY'])
+            ellip_std = np.std(df_stars['ELLIPTICITY'])
+            ELLIPs.append(ellip_avg)
+            ELLIP_stds.append(ellip_std)
+            nsrcs = len(df['ELLIPTICITY'])
+            nsrcs_stars = len(df_stars['ELLIPTICITY'])
+            N_SRCs.append(nsrcs)
+            N_SRCs_stars.append(nsrcs_stars)
+        else:
+            fwhm_avg = np.nan
+            fwhm_std = np.nan
+            FWHMs.append(fwhm_avg)
+            FWHM_stds.append(fwhm_std)
+            ellip_avg = np.nan
+            ellip_std = np.nan
+            ELLIPs.append(ellip_avg)
+            ELLIP_stds.append(ellip_std)
+            nsrcs = len(df['ELLIPTICITY'])
+            nsrcs_stars = len(df_stars['ELLIPTICITY'])
+            N_SRCs.append(nsrcs)
+            N_SRCs_stars.append(nsrcs_stars)            
 
         # Calculate BGRs,BGR_stds and save
         sky, _, sky_pixel_std = calculate_skyStats(fitsfile,  
@@ -387,7 +400,8 @@ def calculate_imageStats_spreadmodel(fitsfiles,outfile=False,
         print(f'Getting catalogs took {(tock-tick)/60.:0.2f} minutes')
         
     if not quietmode:
-        print('Reading catalogs to get image statistics, this ...')
+        print(f'Reading catalogs to get image statistics for {len(catfiles)} files...')
+        print(f'It should take about ~5-10s per file ({len(catfiles)*5/60:0.2f} - {len(catfiles)*10/60:0.2f} mins in total) depending on your computer.')
         tick = time.perf_counter()
     # Calculate average FWHM, average ELLIPTICITY, # sources, background of each input fits file
     (FWHMs,FWHM_stds,
