@@ -97,6 +97,10 @@ if __name__ == "__main__":
 
     # Loop over the lights and plate solve each one
     for fname in lightfilelist:
+        if verbose:
+            print('================')
+            print(f'Working on {fname}')
+            print('================')
 
         print(' ')
 
