@@ -17,7 +17,7 @@ def match_catalogs(f_cat_ref, f_cat_sci,radius_threshold=2 * u.arcsec,
     idx, d2d, d3d = coords_ref.match_to_catalog_3d(coords_sci)
     
     # Sep constraint
-    sep_constraint = d2d > radius_threshold
+    sep_constraint = d2d < radius_threshold
 
     # Get entries in cat_ref with a match
     df_ref_matched = df_ref[sep_constraint]
