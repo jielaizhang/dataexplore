@@ -2,7 +2,7 @@
 
 """write_sourceextractor_files.py -- input directory and write out .nnw, .conv, .config. A .param is written, but check it so that it has the parameters you need, and edit as appropriate.
 
-Usage: write_sourceextractor_files [-h] [-q] [-v] [-s LOC] [--name STRING] outdirectory
+Usage: write_sourceextractor_files [-h] [-q] [-v] [-s LOC] [--name STRING] <outdirectory>
 
 Options:
     -h, --help                  Show this screen
