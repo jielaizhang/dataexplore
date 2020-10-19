@@ -2,14 +2,14 @@
 
 """write_sourceextractor_files.py -- input directory and write out .nnw, .conv, .config. A .param is written, but check it so that it has the parameters you need, and edit as appropriate.
 
-Usage: write_sourceextractor_files [-h] [-q] [-v] [-s LOC] [--name STRING] <outdirectory>
+Usage: write_sourceextractor_files [-h] [-q] [--debug] [-s LOC] [--name STRING] <outdirectory>
 
 Options:
     -h, --help                  Show this screen
     -q, --quiet                 Quiet mode, suppress printout of parameters measured.
-    -v, --verbose               Show extra information [default: False]     
     --name STRING               Output files are outdirectory/STRING_default.conv etc, if not set, output outdirectory/default.conv
     -s LOC, --sextractor LOC    Location of source extractor [default: /opt/local/bin/source-extractor] 
+    --debug                     Print source extractor location if true. [default: False]
 
 Examples:
     from misc.write_sourceextractor_files import write_sourceextractor_files
@@ -96,8 +96,10 @@ def mkdir_ifnotexist(directory):
     return None
 
 def write_sourceextractor_files(outdirectory,file_start_string,
-                                sextractorloc='/opt/local/bin/source-extractor',quietmode=False):
+                                sextractorloc='/opt/local/bin/source-extractor',quietmode=False,debug=False):
 
+    if debug:
+        print(f'This is the Source Extractor Loc used: {sextractorloc}')
     mkdir_ifnotexist(outdirectory)    
 
     if file_start_string:
@@ -125,14 +127,22 @@ def write_sourceextractor_files(outdirectory,file_start_string,
     fp.close()
 
     # Create temporary default.sex file
-    command = sextractorloc+' -d > '+  config_path
-    subprocess.call(command,shell=True)
+    try:
+        command = sextractorloc+' -d > '+  config_path
+        if debug:
+            print(f'This is the source extractor command: {command}')
+        subprocess.check_call(command,shell=True)
+        if not quietmode:
+            print('Saved: ',config_path)
+    except: 
+        print('ERROR: NOT SAVED: ',config_path)
+        print(f'ERROR: Is this the right source extractor loc: {sextractorloc}')
+        print(f'ERROR: If not, add this option: sextractorloc="path", or -s path in command line')
 
     if not quietmode:
         print('Saved: ',nnw_path)
         print('Saved: ',conv_path)
         print('Saved: ',params_path)
-        print('Saved: ',config_path)
         print('Check ',params_path,' to see if it has the parameters you want. Edit for your purposes.')
 
     return nnw_path, conv_path, params_path, config_path
@@ -153,7 +163,8 @@ if __name__ == "__main__":
     quietmode           = arguments['--quiet']
     sextractorloc       = arguments['--sextractor']
     file_start_string   = arguments['--name']
+    debug               = arugments['--debug']
 
     # Calculate
     _ = write_sourceextractor_files(outdirectory,file_start_string,
-                                    sextractorloc=sextractorloc,quietmode=quietmode)
+                                    sextractorloc=sextractorloc,quietmode=quietmode,debug=debug)
