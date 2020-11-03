@@ -96,6 +96,10 @@ def measure_psf(fitsfiles, outdir='./', savepsffits=False,
                       sextractorloc=sextractorloc,
                       psfexloc=psfexloc)
 
+    # Create output directory if not created
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+
     # Set Source Extractor verbose type
     if verbose:
         VERBOSE_TYPE = 'NORMAL'
@@ -128,9 +132,9 @@ def measure_psf(fitsfiles, outdir='./', savepsffits=False,
                       f"{f}")
             if verbose:
                 print('Executing command: %s\n' % command)
-            rval = subprocess.run(command.split(), check=True)
+            rval = subprocess.check_call(command,shell=True)
             if verbose:
-                print('Success!')
+                print('Above Source Extractor Command Completed Successfully.\n')
         except subprocess.CalledProcessError as err:
             print('\nCould not run SExtractor with exit error %s\n'%err)
             print('Command used:\n%s\n'%command)
@@ -157,9 +161,10 @@ def measure_psf(fitsfiles, outdir='./', savepsffits=False,
                            f"{cat_out_name_temp}")
             if verbose:
                 print('Executing command: %s\n' % command)
-            rval = subprocess.run(command.split(), check=True)
+            #rval = subprocess.run(command.split(), check=True)
+            subprocess.check_call(command,shell=True)
             if verbose:
-                print('Success!')
+                print('Above PSFex Completed Successfully!\n')
         except subprocess.CalledProcessError as err:
             print('Could not run psfex with exit error %s'%err) 
 
