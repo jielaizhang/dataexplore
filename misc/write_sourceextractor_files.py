@@ -2,13 +2,14 @@
 
 """write_sourceextractor_files.py -- input directory and write out .nnw, .conv, .config. A .param is written, but check it so that it has the parameters you need, and edit as appropriate.
 
-Usage: write_sourceextractor_files [-h] [-q] [--debug] [-s LOC] [--name STRING] <outdirectory>
+Usage: write_sourceextractor_files [-h] [-q] [--debug] [-s LOC] [--name STRING] [--spreadmodel] <outdirectory>
 
 Options:
     -h, --help                  Show this screen
     -q, --quiet                 Quiet mode, suppress printout of parameters measured.
     --name STRING               Output files are outdirectory/STRING_default.conv etc, if not set, output outdirectory/default.conv
     -s LOC, --sextractor LOC    Location of source extractor [default: /opt/local/bin/source-extractor] 
+    --spreadmodel               If true, parameters output contains spread_model and mag_model and mag model err [default: False]
     --debug                     Print source extractor location if true. [default: False]
 
 Examples:
@@ -16,7 +17,7 @@ Examples:
     (nnw_path, 
     conv_path, 
     params_path, 
-    config_path) = write_sourceextractor_files(outdirectory,file_start_string,
+    config_path) = write_sourceextractor_files(outdirectory,file_start_string,spreadmodel=True,
                                     sextractorloc=sextractorloc,quietmode=quietmode)
 
 """
@@ -90,12 +91,44 @@ ISOAREAF_IMAGE
 ELLIPTICITY
 '''
 
+f_params_spreadmodel='''NUMBER
+FLUX_AUTO
+FLUXERR_AUTO
+FLUX_RADIUS
+FLUX_APER
+FLUXERR_APER
+X_IMAGE
+Y_IMAGE
+X_WORLD
+Y_WORLD
+FLUX_RADIUS
+FLAGS
+CLASS_STAR
+MAG_AUTO
+MAGERR_AUTO
+MAG_ISO
+MAGERR_ISO
+BACKGROUND
+A_IMAGE
+B_IMAGE
+THETA_IMAGE
+THETA_SKY
+ISOAREA_IMAGE
+FWHM_IMAGE
+FWHM_WORLD
+ISOAREAF_IMAGE
+ELLIPTICITY
+SPREAD_MODEL
+MAG_MODEL
+MAGERR_MODEL
+'''
+
 def mkdir_ifnotexist(directory):
     if not os.path.isdir(directory):
         os.makedirs(directory)
     return None
 
-def write_sourceextractor_files(outdirectory,file_start_string,
+def write_sourceextractor_files(outdirectory,file_start_string,spreadmodel=False,
                                 sextractorloc='/opt/local/bin/source-extractor',quietmode=False,debug=False):
 
     if debug:
@@ -122,9 +155,14 @@ def write_sourceextractor_files(outdirectory,file_start_string,
     fp.write(f_conv)
     fp.close()
     
-    fp = open(params_path, "w")
-    fp.write(f_params)
-    fp.close()
+    if spreadmodel:
+        fp = open(params_path, "w")
+        fp.write(f_params_spreadmodel)
+        fp.close()
+    else:
+        fp = open(params_path, "w")
+        fp.write(f_params)
+        fp.close()
 
     # Create temporary default.sex file
     try:
@@ -163,8 +201,9 @@ if __name__ == "__main__":
     quietmode           = arguments['--quiet']
     sextractorloc       = arguments['--sextractor']
     file_start_string   = arguments['--name']
+    spreadmodel         = argumetns['--spreadmodel']
     debug               = arugments['--debug']
 
     # Calculate
-    _ = write_sourceextractor_files(outdirectory,file_start_string,
+    _ = write_sourceextractor_files(outdirectory,file_start_string,spreadmodel=spreadmodel,
                                     sextractorloc=sextractorloc,quietmode=quietmode,debug=debug)
