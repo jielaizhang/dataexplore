@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 """run_sourceextractor.py -- read in fits files, get catalog with spread model.
+Currently uses -PIXEL_SCALE 0, which assumes there is WCS in input fits, so can get pixel scale from header wcs.
 
 Usage: run_sourceextractor [-h] [-q] [--debug] [-v] [-s LOC] [-p LOC] [--spreadmodel] [--savecats LOC] [--catending STRING] [--fwhm FLOAT] [--detect_thresh FLOAT] [--detect_minarea INT] <fitsfiles>...
 
@@ -139,7 +140,7 @@ def run_sourceExtractor(fitsfiles,spreadmodel=False,
                         f'-CATALOG_NAME {catalog_name} '\
                         f'-CATALOG_TYPE ASCII_HEAD '\
                         f'-PARAMETERS_NAME {params_path} -FILTER_NAME {conv_path} '\
-                        f'-STARNNW_NAME {nnw_path} -MAG_ZEROPOINT 25.0 '\
+                        f'-STARNNW_NAME {nnw_path} -PIXEL_SCALE 0 -MAG_ZEROPOINT 25.0 '\
                         f'-PSF_NAME {f_psf} -PSF_NMAX 1 -PATTERN_TYPE GAUSS-LAGUERRE '\
                         f'-VERBOSE_TYPE {VERBOSE_TYPE} '\
                         f'-SEEING_FWHM {fwhm} -DETECT_MINAREA {detect_minarea} -DETECT_THRESH {detect_thresh} '\
