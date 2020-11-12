@@ -136,15 +136,25 @@ def run_sourceExtractor(fitsfiles,spreadmodel=False,
 
         if PSF_success[ii] == True:
             # Run Source Extractor on image to get final catalog output
-            command =   f'{sextractorloc} -c {config_path} '\
-                        f'-CATALOG_NAME {catalog_name} '\
-                        f'-CATALOG_TYPE ASCII_HEAD '\
-                        f'-PARAMETERS_NAME {params_path} -FILTER_NAME {conv_path} '\
-                        f'-STARNNW_NAME {nnw_path} -PIXEL_SCALE 0 -MAG_ZEROPOINT 25.0 '\
-                        f'-PSF_NAME {f_psf} -PSF_NMAX 1 -PATTERN_TYPE GAUSS-LAGUERRE '\
-                        f'-VERBOSE_TYPE {VERBOSE_TYPE} '\
-                        f'-SEEING_FWHM {fwhm} -DETECT_MINAREA {detect_minarea} -DETECT_THRESH {detect_thresh} '\
-                        f'{f}'
+            if spreadmodel:
+                command =   f'{sextractorloc} -c {config_path} '\
+                            f'-CATALOG_NAME {catalog_name} '\
+                            f'-CATALOG_TYPE ASCII_HEAD '\
+                            f'-PARAMETERS_NAME {params_path} -FILTER_NAME {conv_path} '\
+                            f'-STARNNW_NAME {nnw_path} -PIXEL_SCALE 0 -MAG_ZEROPOINT 25.0 '\
+                            f'-PSF_NAME {f_psf} -PSF_NMAX 1 -PATTERN_TYPE GAUSS-LAGUERRE '\
+                            f'-VERBOSE_TYPE {VERBOSE_TYPE} '\
+                            f'-SEEING_FWHM {fwhm} -DETECT_MINAREA {detect_minarea} -DETECT_THRESH {detect_thresh} '\
+                            f'{f}'
+            else:
+                command =   f'{sextractorloc} -c {config_path} '\
+                            f'-CATALOG_NAME {catalog_name} '\
+                            f'-CATALOG_TYPE ASCII_HEAD '\
+                            f'-PARAMETERS_NAME {params_path} -FILTER_NAME {conv_path} '\
+                            f'-STARNNW_NAME {nnw_path} -PIXEL_SCALE 0 -MAG_ZEROPOINT 25.0 '\
+                            f'-VERBOSE_TYPE {VERBOSE_TYPE} '\
+                            f'-SEEING_FWHM {fwhm} -DETECT_MINAREA {detect_minarea} -DETECT_THRESH {detect_thresh} '\
+                            f'{f}'
             if verbose:
                 print('Currently running source extractor to output required catalog...')
                 print('=============================================')
