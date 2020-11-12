@@ -201,8 +201,8 @@ if __name__ == "__main__":
     quietmode           = arguments['--quiet']
     sextractorloc       = arguments['--sextractor']
     file_start_string   = arguments['--name']
-    spreadmodel         = argumetns['--spreadmodel']
-    debug               = arugments['--debug']
+    spreadmodel         = arguments['--spreadmodel']
+    debug               = arguments['--debug']
 
     # Calculate
     _ = write_sourceextractor_files(outdirectory,file_start_string,spreadmodel=spreadmodel,
