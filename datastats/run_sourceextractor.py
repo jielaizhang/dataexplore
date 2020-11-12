@@ -165,7 +165,8 @@ def run_sourceExtractor(fitsfiles,spreadmodel=False,
                 rval = subprocess.run(command.split(), check=True)
                 catfiles.append(catalog_name)
                 catted_fitsfiles.append(f)
-                os.remove(f_psf)
+                if spreadmodel:
+                    os.remove(f_psf)
                 if verbose:
                     print(f'Success! Cat saved: {catalog_name}')
             except subprocess.CalledProcessError as err:
