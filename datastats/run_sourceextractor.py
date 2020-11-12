@@ -76,8 +76,10 @@ def run_sourceExtractor(fitsfiles,spreadmodel=False,
     (nnw_path, 
     conv_path, 
     params_path, 
-    config_path) = write_sourceextractor_files('./','run_sourceextractor',spreadmodel=True,
+    config_path) = write_sourceextractor_files('./','run_sourceextractor',spreadmodel=spreadmodel,
                                                 sextractorloc=sextractorloc,quietmode=quietmode)
+
+
     # Print useful information if verbose
     if verbose:
         if spreadmodel:
