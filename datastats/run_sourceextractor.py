@@ -2,7 +2,7 @@
 
 """run_sourceextractor.py -- read in fits files, get catalog with spread model.
 
-Usage: run_sourceextractor [-h] [-q] [--debug] [-v] [-s LOC] [-p LOC] [--spreadmodel] [--savecats LOC] [--catending STRING] <fitsfiles>...
+Usage: run_sourceextractor [-h] [-q] [--debug] [-v] [-s LOC] [-p LOC] [--spreadmodel] [--savecats LOC] [--catending STRING] [--fwhm FLOAT] [--detect_thresh FLOAT] [--detect_minarea INT] <fitsfiles>...
 
 Options:
     -h, --help                  Show this screen
@@ -14,6 +14,9 @@ Options:
     --spreadmodel               If on, spread_model, mag_model, magerr_model will be in output catalog [default: False]
     --savecats LOC              Output cat files to this directory. If not input, outputs to same directory as input file.
     --catending STRING          Output cats for each file.fits will be file_STRING.cat, if empty, output will be file.cat.
+    --fwhm FLOAT                The SEEING_FWHM config param for Source Extraction in arcsec [default: 1.2]
+    --detect_thresh FLOAT       The Source Extraction detection threshold [default: 1.5]
+    --detect_minarea INT        The Source Extraction detection minimum area [default: 5]
 
 Examples:
     python run_sourceextractor.py *fits -o ./outfile.txt --savecats ../cats
@@ -56,6 +59,7 @@ def run_sourceExtractor(fitsfiles,spreadmodel=False,
                         savecats_dir = None, catending = None,
                         sextractorloc='/opt/local/bin/source-extractor',
                         psfexloc='/opt/local/bin/psfex',
+                        fwhm = 1.2, detect_minarea = 5, detect_thresh = 1.5, # Default settings in Source Extractor
                         verbose=False,quietmode=False,debugmode=False):
 
     if savecats_dir == None:
@@ -132,6 +136,7 @@ def run_sourceExtractor(fitsfiles,spreadmodel=False,
                         f'-STARNNW_NAME {nnw_path} -MAG_ZEROPOINT 25.0 '\
                         f'-PSF_NAME {f_psf} -PSF_NMAX 1 -PATTERN_TYPE GAUSS-LAGUERRE '\
                         f'-VERBOSE_TYPE {VERBOSE_TYPE} '\
+                        f'-SEEING_FWHM {fwhm} -DETECT_MINAREA {detect_minarea} -DETECT_THRESH {detect_thresh} '\
                         f'{f}'
             if verbose:
                 print('Currently running source extractor to output required catalog...')
@@ -174,10 +179,14 @@ if __name__ == "__main__":
     sextractorloc   = arguments['--sextractor']
     psfexloc        = arguments['--psfex']
     spreadmodel     = arguments['--spreadmodel']
+    fwhm            = arguments['--fwhm']
+    detect_thresh   = arguments['--detect_thresh'] 
+    detect_minarea  = arguments['--detect_minarea']
 
     # Calculate
     _,_ = run_sourceExtractor(fitsfiles,spreadmodel=spreadmodel,
                                 sextractorloc=sextractorloc,
                                 psfexloc=psfexloc,
                                 savecats_dir = savecats_dir, catending = catending,
+                                fwhm=fwhm, detect_thresh=detect_thresh,detect_minarea=detect_minarea,
                                 verbose=verbose,quietmode=quietmode,debugmode=debugmode)
