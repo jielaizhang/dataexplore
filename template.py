@@ -24,6 +24,7 @@ import astropy.io.fits as fits
 import numpy as np
 import sys, os, ntpath
 from pathlib import Path
+from datetime import datetime
 
 import copy
 
@@ -77,6 +78,10 @@ def XXX(verbose=False,debugmode=False,quietmode=False):
     fname       = ntpath.basename(fitspath)
     fname_stub  = Path(fname).stem
     saveloc     = savedir + os.path.sep + fname_stub + '_sub.fits'
+
+    # Convert to dt
+    dt = datetime.strptime(sunset_CT.iso, '%Y-%m-%d %H:%M:%S.%f') #2020-10-23 16:01:22.058 
+    
 
 
     # Saving fits file
