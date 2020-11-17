@@ -207,19 +207,26 @@ def find_transientCandidates_(sub_cat, sci_cat, neg_cat,
     # source in Subtraction, but no nearby source in Negative.
     # XXX Hard coded section !!! (radius_threshold)
 
-    radius_threshold = 2.5 * u.arcsec # 10 pixels for KMTNet
-    df_sciYes_posYes, df_sciYes_posYes_sub = match_catalogs_df( df_sci_select, df_pos_select,
-                                                                radius_threshold=radius_threshold)
-    radius_threshold = 4 * u.arcsec
-    df_sciYes_posYes_negNo, df_sciYes_posYes_negNo_neg = match_catalogs_df( df_sciYes_posYes, df_neg_select,
-                                                                            radius_threshold=radius_threshold,find_close=False)
-    # Grab the corresponding sub too (this line doesn't change df_sciYes_posYes_negNo)
-    df_sciYes_posYes_negNo, df_sciYes_posYes_negNo_sub = match_catalogs_df( df_sciYes_posYes_negNo, df_pos_select,
-                                                                            radius_threshold=radius_threshold,find_close=True)
+    no_candidates = False
+    if len(df_pos_select) == 0:
+        print('No subtraction sources has passed tests up to this point.')
+        no_candidates = True
+    else:
+        # Get sci and sub matched
+        radius_threshold = 2.5 * u.arcsec # 10 pixels for KMTNet
+        df_sciYes_posYes, df_sciYes_posYes_sub = match_catalogs_df( df_sci_select, df_pos_select,
+                                                                    radius_threshold=radius_threshold)
+        # Get sci/sub matched with no nearby neg
+        radius_threshold = 4 * u.arcsec
+        df_sciYes_posYes_negNo, df_sciYes_posYes_negNo_neg = match_catalogs_df( df_sciYes_posYes, df_neg_select,
+                                                                                radius_threshold=radius_threshold,find_close=False)
+        # Grab the corresponding sub too (this line doesn't change df_sciYes_posYes_negNo)
+        df_sciYes_posYes_negNo, df_sciYes_posYes_negNo_sub = match_catalogs_df( df_sciYes_posYes_negNo, df_pos_select,
+                                                                                radius_threshold=radius_threshold,find_close=True)
 
-    if verbose:
-        print(f'Sources in SCI matched in POS SUB: {len(df_sciYes_posYes)}')
-        print(f'Sources in SCI matched in POS SUB, then not matched in NEG: {len(df_sciYes_posYes_negNo)}')
+        if verbose:
+            print(f'Sources in SCI matched in POS SUB: {len(df_sciYes_posYes)}')
+            print(f'Sources in SCI matched in POS SUB, then not matched in NEG: {len(df_sciYes_posYes_negNo)}')
 
 
     # ..............................................................
@@ -290,6 +297,8 @@ def find_transientCandidates_(sub_cat, sci_cat, neg_cat,
     f_ds9.write('# green = sub\n')
     f_ds9.write('# red = neg sub\n')
     f_ds9.write('# blue 30 deg = sci\n')
+    if no_candidates == True:
+        f_ds9.write('# No candidates found.\n')
     command =   f'ds9 -zscale -lock frame wcs {sub_fits} {neg_fits} {sci_fits} '\
                 f'-regions load all {reg_all_selected_detections} &\n\n' 
     f_ds9.write(command)
@@ -299,108 +308,81 @@ def find_transientCandidates_(sub_cat, sci_cat, neg_cat,
     # ..............................................................
     # Make Region files of sources matched in Sci and Sub
 
-    # Save region file.
-    Rs_sciYes_posYes = df_sciYes_posYes['X_WORLD']
-    Ds_sciYes_posYes = df_sciYes_posYes['Y_WORLD']
-    Sizes   = ["0.1'"]*len(Rs_sciYes_posYes)
-    Shapes = ['circle']*len(Rs_sciYes_posYes)
-    j2000s  = ['j2000;']*len(Rs_sciYes_posYes)
-    Colors = ['#color=green']*len(Rs_sciYes_posYes)
-    h       = 'Region file format: DS9 version 4.0'
-    savetext = np.transpose([j2000s,Shapes,Rs_sciYes_posYes,Ds_sciYes_posYes,Sizes])
-    np.savetxt(reg_sciYes_subYes, (savetext),fmt='%s',header=h)
-    if verbose:
-        print(f'Saved: {reg_sciYes_subYes}')
+    if no_candidates == False:
+        # Save region file.
+        Rs_sciYes_posYes = df_sciYes_posYes['X_WORLD']
+        Ds_sciYes_posYes = df_sciYes_posYes['Y_WORLD']
+        Sizes   = ["0.1'"]*len(Rs_sciYes_posYes)
+        Shapes = ['circle']*len(Rs_sciYes_posYes)
+        j2000s  = ['j2000;']*len(Rs_sciYes_posYes)
+        Colors = ['#color=green']*len(Rs_sciYes_posYes)
+        h       = 'Region file format: DS9 version 4.0'
+        savetext = np.transpose([j2000s,Shapes,Rs_sciYes_posYes,Ds_sciYes_posYes,Sizes])
+        np.savetxt(reg_sciYes_subYes, (savetext),fmt='%s',header=h)
+        if verbose:
+            print(f'Saved: {reg_sciYes_subYes}')
 
-    # Add ds9 command to ds9 commands file.
-    f_ds9.write('# ---Sub, sci, matched sources (sciYes_posYes) region file --- \n')
-    f_ds9.write('# green circle = sci/sub matched\n')
-    command =   f'ds9 -zscale -lock frame wcs {sub_fits} {sci_fits} '\
-                f'-regions load all {reg_sciYes_subYes} & \n\n'    
-    f_ds9.write(command)
-    f_ds9.write('')
+        # Add ds9 command to ds9 commands file.
+        f_ds9.write('# ---Sub, sci, matched sources (sciYes_posYes) region file --- \n')
+        f_ds9.write('# green circle = sci/sub matched\n')
+        command =   f'ds9 -zscale -lock frame wcs {sub_fits} {sci_fits} '\
+                    f'-regions load all {reg_sciYes_subYes} & \n\n'    
+        f_ds9.write(command)
+        f_ds9.write('')
 
 
-    # ..............................................................
-    # Make Region files of sources matched in Sci and Sub and not in Neg
-    # XXX Hard coded section !!! (FRB200914 error region)
+        # ..............................................................
+        # Make Region files of sources matched in Sci and Sub and not in Neg
+        # XXX Hard coded section !!! (FRB200914 error region)
 
-    # Save region file, include FRB200914 error region 
-    Rs_sciYes_posYes_negNo = np.array(df_sciYes_posYes_negNo['X_WORLD'])
-    Ds_sciYes_posYes_negNo = np.array(df_sciYes_posYes_negNo['Y_WORLD'])
-    Shapes  = ['panda']*len(Rs_sciYes_posYes_negNo)
-    j2000s  = ['j2000;']*len(Rs_sciYes_posYes_negNo)
-    Colors  = ['#color=yellow']*len(Rs_sciYes_posYes_negNo)
-    startangles=['0']*len(Rs_sciYes_posYes_negNo)
-    stopangles =['360']*len(Rs_sciYes_posYes_negNo)
-    nangles    =['4']*len(Rs_sciYes_posYes_negNo)
-    inners     =['0.003']*len(Rs_sciYes_posYes_negNo)
-    outers     =['0.0035']*len(Rs_sciYes_posYes_negNo)
-    nradiuss   =['1']*len(Rs_sciYes_posYes_negNo)
-    h       = 'Region file format: DS9 version 4.0'
-    savetext = np.transpose([j2000s,Shapes,Rs_sciYes_posYes_negNo,Ds_sciYes_posYes_negNo,
-                             startangles,stopangles,nangles,inners,outers,nradiuss,Colors])
-    np.savetxt(region_file, (savetext),fmt='%s',header=h)
-    fp = open(region_file, "a")
-    fp.write("j2000; circle 326.65958333 -81.0772222 7.5' #color=yellow")
-    fp.close()
-    if verbose:
-        print(f'Saved: {region_file}')
+        # Save region file, include FRB200914 error region 
+        Rs_sciYes_posYes_negNo = np.array(df_sciYes_posYes_negNo['X_WORLD'])
+        Ds_sciYes_posYes_negNo = np.array(df_sciYes_posYes_negNo['Y_WORLD'])
+        Shapes  = ['panda']*len(Rs_sciYes_posYes_negNo)
+        j2000s  = ['j2000;']*len(Rs_sciYes_posYes_negNo)
+        Colors  = ['#color=yellow']*len(Rs_sciYes_posYes_negNo)
+        startangles=['0']*len(Rs_sciYes_posYes_negNo)
+        stopangles =['360']*len(Rs_sciYes_posYes_negNo)
+        nangles    =['4']*len(Rs_sciYes_posYes_negNo)
+        inners     =['0.003']*len(Rs_sciYes_posYes_negNo)
+        outers     =['0.0035']*len(Rs_sciYes_posYes_negNo)
+        nradiuss   =['1']*len(Rs_sciYes_posYes_negNo)
+        h       = 'Region file format: DS9 version 4.0'
+        savetext = np.transpose([j2000s,Shapes,Rs_sciYes_posYes_negNo,Ds_sciYes_posYes_negNo,
+                                 startangles,stopangles,nangles,inners,outers,nradiuss,Colors])
+        np.savetxt(region_file, (savetext),fmt='%s',header=h)
+        fp = open(region_file, "a")
+        fp.write("j2000; circle 326.65958333 -81.0772222 7.5' #color=yellow")
+        fp.close()
+        if verbose:
+            print(f'Saved: {region_file}')
 
-    # Add ds9 command to ds9 commands file- sub sci and neg
-    f_ds9.write('# ---Sub, sci, neg; sciYes_posYes_negNo region file --- \n')
-    f_ds9.write('# yellow panda = sci/sub matched but not matched to neg\n')
-    command =   f'ds9 -zscale -lock frame wcs {sub_fits} {sci_fits} {neg_fits} '\
-                f'-regions load all {region_file} &\n\n'    
-    f_ds9.write(command)
-    f_ds9.write('')
+        # Add ds9 command to ds9 commands file- sub sci and neg
+        f_ds9.write('# ---Sub, sci, neg; sciYes_posYes_negNo region file --- \n')
+        f_ds9.write('# yellow panda = sci/sub matched but not matched to neg\n')
+        command =   f'ds9 -zscale -lock frame wcs {sub_fits} {sci_fits} {neg_fits} '\
+                    f'-regions load all {region_file} &\n\n'    
+        f_ds9.write(command)
+        f_ds9.write('')
 
-    # Add ds9 command to ds9 commands file- sub sci only
-    f_ds9.write('# ---Sub, sci; sciYes_posYes_negNo region file --- \n')
-    f_ds9.write('# yellow panda = sci/sub matched but not matched to neg\n')
-    command =   f'ds9 -zscale -lock frame wcs {sub_fits} {sci_fits} '\
-                f'-regions load all {region_file} &\n\n'    
-    f_ds9.write(command)
-    f_ds9.write('')
+        # Add ds9 command to ds9 commands file- sub sci only
+        f_ds9.write('# ---Sub, sci; sciYes_posYes_negNo region file --- \n')
+        f_ds9.write('# yellow panda = sci/sub matched but not matched to neg\n')
+        command =   f'ds9 -zscale -lock frame wcs {sub_fits} {sci_fits} '\
+                    f'-regions load all {region_file} &\n\n'    
+        f_ds9.write(command)
+        f_ds9.write('')
 
+    elif no_candidates == True:
+
+        # Write region file only with error region. 
+        fp = open(region_file, "w")
+        fp.write('# Region file format: DS9 version 4.0')
+        fp.write('# No candidates detected.')
+        fp.write("j2000; circle 326.65958333 -81.0772222 7.5' #color=yellow")
+        fp.close()
 
     # Candidate pandas table
-    RA_sci              = df_sciYes_posYes_negNo['X_WORLD']
-    DEC_sci             = df_sciYes_posYes_negNo['Y_WORLD']
-    FLUX_RADIUS_sci     = df_sciYes_posYes_negNo['FLUX_RADIUS']
-    FLUX_APER_sci       = df_sciYes_posYes_negNo['FLUX_APER']
-    FLUXERR_APER_sci    = df_sciYes_posYes_negNo['FLUXERR_APER']
-    MAG_AUTO_sci        = df_sciYes_posYes_negNo['MAG_AUTO']
-    MAGERR_AUTO_sci     = df_sciYes_posYes_negNo['MAGERR_AUTO']
-    MAG_MODEL_sci       = df_sciYes_posYes_negNo['MAG_MODEL']
-    MAGERR_MODEL_sci    = df_sciYes_posYes_negNo['MAGERR_MODEL']
-    BACKGROUND_sci      = df_sciYes_posYes_negNo['BACKGROUND']
-    FWHM_IMAGE_sci      = df_sciYes_posYes_negNo['FWHM_IMAGE']
-    FWHM_WORLD_sci      = df_sciYes_posYes_negNo['FWHM_WORLD']
-    ISOAREAF_IMAGE_sci   = df_sciYes_posYes_negNo['ISOAREAF_IMAGE']
-    ELLIPTICITY_sci     = df_sciYes_posYes_negNo['ELLIPTICITY']
-    FLAGS_sci           = df_sciYes_posYes_negNo['FLAGS']
-    CLASS_STAR_sci      = df_sciYes_posYes_negNo['CLASS_STAR']
-    SPREAD_MODEL_sci    = df_sciYes_posYes_negNo['SPREAD_MODEL']
-
-    RA_sub              = df_sciYes_posYes_negNo_sub['X_WORLD']
-    DEC_sub             = df_sciYes_posYes_negNo_sub['Y_WORLD']
-    FLUX_RADIUS_sub     = df_sciYes_posYes_negNo_sub['FLUX_RADIUS']
-    FLUX_APER_sub       = df_sciYes_posYes_negNo_sub['FLUX_APER']
-    FLUXERR_APER_sub    = df_sciYes_posYes_negNo_sub['FLUXERR_APER']
-    MAG_AUTO_sub        = df_sciYes_posYes_negNo_sub['MAG_AUTO']
-    MAGERR_AUTO_sub     = df_sciYes_posYes_negNo_sub['MAGERR_AUTO']
-    MAG_MODEL_sub       = df_sciYes_posYes_negNo_sub['MAG_MODEL']
-    MAGERR_MODEL_sub    = df_sciYes_posYes_negNo_sub['MAGERR_MODEL']
-    BACKGROUND_sub      = df_sciYes_posYes_negNo_sub['BACKGROUND']
-    FWHM_IMAGE_sub      = df_sciYes_posYes_negNo_sub['FWHM_IMAGE']
-    FWHM_WORLD_sub      = df_sciYes_posYes_negNo_sub['FWHM_WORLD']
-    ISOAREAF_IMAGE_sub   = df_sciYes_posYes_negNo_sub['ISOAREAF_IMAGE']
-    ELLIPTICITY_sub     = df_sciYes_posYes_negNo_sub['ELLIPTICITY']
-    FLAGS_sub           = df_sciYes_posYes_negNo_sub['FLAGS']
-    CLASS_STAR_sub      = df_sciYes_posYes_negNo_sub['CLASS_STAR']
-    SPREAD_MODEL_sub    = df_sciYes_posYes_negNo_sub['SPREAD_MODEL']
-
     h               =   'RA_sci DEC_sci RA_sub DEC_sub '\
                         'FLUX_RADIUS_sci FLUX_RADIUS_sub '\
                         'FLUX_APER_sci FLUXERR_APER_sci FLUX_APER_sub FLUXERR_APER_sub '\
@@ -413,21 +395,70 @@ def find_transientCandidates_(sub_cat, sci_cat, neg_cat,
                         'FLAGS_sci FLAGS_sub '\
                         'CLASS_STAR_sci CLASS_STAR_sub '\
                         'SPREAD_MODEL_sci SPREAD_MODEL_sub'
-    candidate_list  = np.transpose([RA_sci,DEC_sci,RA_sub,DEC_sub,
-                                    FLUX_RADIUS_sci, FLUX_RADIUS_sub,
-                                    FLUX_APER_sci,FLUXERR_APER_sci, FLUX_APER_sub,FLUXERR_APER_sub,
-                                    MAG_AUTO_sci,MAGERR_AUTO_sci,   MAG_AUTO_sub,MAGERR_AUTO_sub,
-                                    MAG_MODEL_sci,MAGERR_MODEL_sci, MAG_MODEL_sub,MAGERR_MODEL_sub,
-                                    BACKGROUND_sci, BACKGROUND_sub, 
-                                    FWHM_IMAGE_sci,FWHM_WORLD_sci,  FWHM_IMAGE_sub,FWHM_WORLD_sub,
-                                    ISOAREAF_IMAGE_sci,  ISOAREAF_IMAGE_sub,
-                                    ELLIPTICITY_sci, ELLIPTICITY_sub,
-                                    FLAGS_sci, FLAGS_sub,
-                                    CLASS_STAR_sci,CLASS_STAR_sub,
-                                    SPREAD_MODEL_sci, SPREAD_MODEL_sub])
-    np.savetxt(candidate_list_file, (candidate_list),fmt='%s',header=h)
+
+    if no_candidates == False:
+        RA_sci              = df_sciYes_posYes_negNo['X_WORLD']
+        DEC_sci             = df_sciYes_posYes_negNo['Y_WORLD']
+        FLUX_RADIUS_sci     = df_sciYes_posYes_negNo['FLUX_RADIUS']
+        FLUX_APER_sci       = df_sciYes_posYes_negNo['FLUX_APER']
+        FLUXERR_APER_sci    = df_sciYes_posYes_negNo['FLUXERR_APER']
+        MAG_AUTO_sci        = df_sciYes_posYes_negNo['MAG_AUTO']
+        MAGERR_AUTO_sci     = df_sciYes_posYes_negNo['MAGERR_AUTO']
+        MAG_MODEL_sci       = df_sciYes_posYes_negNo['MAG_MODEL']
+        MAGERR_MODEL_sci    = df_sciYes_posYes_negNo['MAGERR_MODEL']
+        BACKGROUND_sci      = df_sciYes_posYes_negNo['BACKGROUND']
+        FWHM_IMAGE_sci      = df_sciYes_posYes_negNo['FWHM_IMAGE']
+        FWHM_WORLD_sci      = df_sciYes_posYes_negNo['FWHM_WORLD']
+        ISOAREAF_IMAGE_sci   = df_sciYes_posYes_negNo['ISOAREAF_IMAGE']
+        ELLIPTICITY_sci     = df_sciYes_posYes_negNo['ELLIPTICITY']
+        FLAGS_sci           = df_sciYes_posYes_negNo['FLAGS']
+        CLASS_STAR_sci      = df_sciYes_posYes_negNo['CLASS_STAR']
+        SPREAD_MODEL_sci    = df_sciYes_posYes_negNo['SPREAD_MODEL']
+
+        RA_sub              = df_sciYes_posYes_negNo_sub['X_WORLD']
+        DEC_sub             = df_sciYes_posYes_negNo_sub['Y_WORLD']
+        FLUX_RADIUS_sub     = df_sciYes_posYes_negNo_sub['FLUX_RADIUS']
+        FLUX_APER_sub       = df_sciYes_posYes_negNo_sub['FLUX_APER']
+        FLUXERR_APER_sub    = df_sciYes_posYes_negNo_sub['FLUXERR_APER']
+        MAG_AUTO_sub        = df_sciYes_posYes_negNo_sub['MAG_AUTO']
+        MAGERR_AUTO_sub     = df_sciYes_posYes_negNo_sub['MAGERR_AUTO']
+        MAG_MODEL_sub       = df_sciYes_posYes_negNo_sub['MAG_MODEL']
+        MAGERR_MODEL_sub    = df_sciYes_posYes_negNo_sub['MAGERR_MODEL']
+        BACKGROUND_sub      = df_sciYes_posYes_negNo_sub['BACKGROUND']
+        FWHM_IMAGE_sub      = df_sciYes_posYes_negNo_sub['FWHM_IMAGE']
+        FWHM_WORLD_sub      = df_sciYes_posYes_negNo_sub['FWHM_WORLD']
+        ISOAREAF_IMAGE_sub   = df_sciYes_posYes_negNo_sub['ISOAREAF_IMAGE']
+        ELLIPTICITY_sub     = df_sciYes_posYes_negNo_sub['ELLIPTICITY']
+        FLAGS_sub           = df_sciYes_posYes_negNo_sub['FLAGS']
+        CLASS_STAR_sub      = df_sciYes_posYes_negNo_sub['CLASS_STAR']
+        SPREAD_MODEL_sub    = df_sciYes_posYes_negNo_sub['SPREAD_MODEL']
+
+        candidate_list  = np.transpose([RA_sci,DEC_sci,RA_sub,DEC_sub,
+                                        FLUX_RADIUS_sci, FLUX_RADIUS_sub,
+                                        FLUX_APER_sci,FLUXERR_APER_sci, FLUX_APER_sub,FLUXERR_APER_sub,
+                                        MAG_AUTO_sci,MAGERR_AUTO_sci,   MAG_AUTO_sub,MAGERR_AUTO_sub,
+                                        MAG_MODEL_sci,MAGERR_MODEL_sci, MAG_MODEL_sub,MAGERR_MODEL_sub,
+                                        BACKGROUND_sci, BACKGROUND_sub, 
+                                        FWHM_IMAGE_sci,FWHM_WORLD_sci,  FWHM_IMAGE_sub,FWHM_WORLD_sub,
+                                        ISOAREAF_IMAGE_sci,  ISOAREAF_IMAGE_sub,
+                                        ELLIPTICITY_sci, ELLIPTICITY_sub,
+                                        FLAGS_sci, FLAGS_sub,
+                                        CLASS_STAR_sci,CLASS_STAR_sub,
+                                        SPREAD_MODEL_sci, SPREAD_MODEL_sub])
+        np.savetxt(candidate_list_file, (candidate_list),fmt='%s',header=h)
+
+    elif no_candidates == True:
+        # Write empty candidate list file
+        fp = open(candidate_list_file, "w")
+        fp.write('# No candidates detected.\n')
+        fp.write(h)
+        fp.close()
+
+        # Make empty candidate list for output
+        candidate_list = []
+
     if verbose:
-        print(f'Saved: {candidate_list_file}')
+        print(f'Saved: {candidate_list_file}') 
     
     # ..............................................................
     # Close ds9commands file 
