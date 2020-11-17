@@ -131,7 +131,6 @@ def find_transientCandidates_(sub_cat, sci_cat, neg_cat,
     df_pos  = pd.DataFrame(dat_pos.as_array())
 
     if verbose:
-        print('#-------------------------------')
         print(f'For {sub_cat}:')
         print(f'Sources in SCI: {len(df_sci)}')
         print(f'Sources in POS: {len(df_pos)}')
@@ -473,23 +472,31 @@ def find_transientCandidates(sub_cat, sci_cat, neg_cat, sub_fits, sci_fits, neg_
         ds9commands_Files    = []
         
         # Read in lists
-        sub_cat_list = [list(x) for x in read(sub_cat,format='no_header')]
+        sub_cat_list = [list(x) for x in ascii.read(sub_cat,format='no_header')]
         sub_cat_list = np.transpose(sub_cat_list)[0]
-        sci_cat_list = [list(x) for x in read(sci_cat,format='no_header')]
+        sci_cat_list = [list(x) for x in ascii.read(sci_cat,format='no_header')]
         sci_cat_list = np.transpose(sci_cat_list)[0]
-        neg_cat_list = [list(x) for x in read(neg_cat,format='no_header')]
+        neg_cat_list = [list(x) for x in ascii.read(neg_cat,format='no_header')]
         neg_cat_list = np.transpose(neg_cat_list)[0]
-        sub_fits_list = [list(x) for x in read(sub_fits,format='no_header')]
+        sub_fits_list = [list(x) for x in ascii.read(sub_fits,format='no_header')]
         sub_fits_list = np.transpose(sub_fits_list)[0]
-        sci_fits_list = [list(x) for x in read(sci_fits,format='no_header')]
+        sci_fits_list = [list(x) for x in ascii.read(sci_fits,format='no_header')]
         sci_fits_list = np.transpose(sci_fits_list)[0]
-        neg_fits_list = [list(x) for x in read(neg_fits,format='no_header')]
+        neg_fits_list = [list(x) for x in ascii.read(neg_fits,format='no_header')]
         neg_fits_list = np.transpose(neg_fits_list)[0]
         
+        # Count how many
+        if verbose:
+            print(f'There are {len(sub_cat_list)} files to go through.')
 
         # For each subtraction image, identify candidates
+        upto_number = 0
         for sub,sci,neg,_sub_fits,_sci_fits,_neg_fits in zip(sub_cat_list, sci_cat_list, neg_cat_list,
-                                                             sub_fits_list,sci_fits_list,neg_fits_list):
+                                                                                    sub_fits_list,sci_fits_list,neg_fits_list):
+            upto_number += 1
+            if verbose:
+                print('#-------------------------------')
+                print(f'...Processing file {upto_number} out of {len(sub_cat_list)}.')
             (region_file, 
             candidate_list_file, 
             candidate_list,
