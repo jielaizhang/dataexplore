@@ -22,7 +22,8 @@ Examples:
 import docopt
 import astropy.io.fits as fits
 import numpy as np
-import sys, os, ntpath
+import sys, os
+import ntpath
 from pathlib import Path
 from datetime import datetime
 
@@ -77,6 +78,7 @@ def XXX(verbose=False,debugmode=False,quietmode=False):
     # Determine saveloc for subtracted image based on input savedir and input file name
     fname       = ntpath.basename(fitspath)
     fname_stub  = Path(fname).stem
+    stub        = Path(ntpath.basename(fitspath)).stem
     saveloc     = savedir + os.path.sep + fname_stub + '_sub.fits'
 
     # Convert to dt
