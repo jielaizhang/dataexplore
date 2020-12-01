@@ -18,6 +18,7 @@ Options:
     -b STRING, --boundonaxis STRING         xmin,xmax,ymin,ymax e.g. 10,50,0,100; e.g. 10,nan,0,100
 
 Examples:
+from datastats.measure_psf import measure_psf
 """
 import docopt
 import astropy.io.fits as fits
