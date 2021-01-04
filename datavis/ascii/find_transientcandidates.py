@@ -435,54 +435,56 @@ def find_transientCandidates_(sub_cat, sci_cat, neg_cat,
                         'SPREAD_MODEL_sci SPREAD_MODEL_sub'
 
     if no_candidates == False:
-        RA_sci              = df_sciYes_posYes_negNo['X_WORLD']
-        DEC_sci             = df_sciYes_posYes_negNo['Y_WORLD']
-        FLUX_RADIUS_sci     = df_sciYes_posYes_negNo['FLUX_RADIUS']
-        FLUX_APER_sci       = df_sciYes_posYes_negNo['FLUX_APER']
-        FLUXERR_APER_sci    = df_sciYes_posYes_negNo['FLUXERR_APER']
-        MAG_AUTO_sci        = df_sciYes_posYes_negNo['MAG_AUTO']
-        MAGERR_AUTO_sci     = df_sciYes_posYes_negNo['MAGERR_AUTO']
-        MAG_MODEL_sci       = df_sciYes_posYes_negNo['MAG_MODEL']
-        MAGERR_MODEL_sci    = df_sciYes_posYes_negNo['MAGERR_MODEL']
-        BACKGROUND_sci      = df_sciYes_posYes_negNo['BACKGROUND']
-        FWHM_IMAGE_sci      = df_sciYes_posYes_negNo['FWHM_IMAGE']
-        FWHM_WORLD_sci      = df_sciYes_posYes_negNo['FWHM_WORLD']
-        ISOAREAF_IMAGE_sci   = df_sciYes_posYes_negNo['ISOAREAF_IMAGE']
-        ELLIPTICITY_sci     = df_sciYes_posYes_negNo['ELLIPTICITY']
-        FLAGS_sci           = df_sciYes_posYes_negNo['FLAGS']
-        CLASS_STAR_sci      = df_sciYes_posYes_negNo['CLASS_STAR']
-        SPREAD_MODEL_sci    = df_sciYes_posYes_negNo['SPREAD_MODEL']
+        RA_sci              = np.array(df_sciYes_posYes_negNo['X_WORLD'])
+        DEC_sci             = np.array(df_sciYes_posYes_negNo['Y_WORLD'])
+        FLUX_RADIUS_sci     = np.array(df_sciYes_posYes_negNo['FLUX_RADIUS'])
+        FLUX_APER_sci       = np.array(df_sciYes_posYes_negNo['FLUX_APER'])
+        FLUXERR_APER_sci    = np.array(df_sciYes_posYes_negNo['FLUXERR_APER'])
+        MAG_AUTO_sci        = np.array(df_sciYes_posYes_negNo['MAG_AUTO'])
+        MAGERR_AUTO_sci     = np.array(df_sciYes_posYes_negNo['MAGERR_AUTO'])
+        MAG_MODEL_sci       = np.array(df_sciYes_posYes_negNo['MAG_MODEL'])
+        MAGERR_MODEL_sci    = np.array(df_sciYes_posYes_negNo['MAGERR_MODEL'])
+        BACKGROUND_sci      = np.array(df_sciYes_posYes_negNo['BACKGROUND'])
+        FWHM_IMAGE_sci      = np.array(df_sciYes_posYes_negNo['FWHM_IMAGE'])
+        FWHM_WORLD_sci      = np.array(df_sciYes_posYes_negNo['FWHM_WORLD'])
+        ISOAREAF_IMAGE_sci  = np.array(df_sciYes_posYes_negNo['ISOAREAF_IMAGE'])
+        ELLIPTICITY_sci     = np.array(df_sciYes_posYes_negNo['ELLIPTICITY'])
+        FLAGS_sci           = np.array(df_sciYes_posYes_negNo['FLAGS'])
+        CLASS_STAR_sci      = np.array(df_sciYes_posYes_negNo['CLASS_STAR'])
+        SPREAD_MODEL_sci    = np.array(df_sciYes_posYes_negNo['SPREAD_MODEL'])
 
-        RA_sub              = df_sciYes_posYes_negNo_sub['X_WORLD']
-        DEC_sub             = df_sciYes_posYes_negNo_sub['Y_WORLD']
-        FLUX_RADIUS_sub     = df_sciYes_posYes_negNo_sub['FLUX_RADIUS']
-        FLUX_APER_sub       = df_sciYes_posYes_negNo_sub['FLUX_APER']
-        FLUXERR_APER_sub    = df_sciYes_posYes_negNo_sub['FLUXERR_APER']
-        MAG_AUTO_sub        = df_sciYes_posYes_negNo_sub['MAG_AUTO']
-        MAGERR_AUTO_sub     = df_sciYes_posYes_negNo_sub['MAGERR_AUTO']
-        MAG_MODEL_sub       = df_sciYes_posYes_negNo_sub['MAG_MODEL']
-        MAGERR_MODEL_sub    = df_sciYes_posYes_negNo_sub['MAGERR_MODEL']
-        BACKGROUND_sub      = df_sciYes_posYes_negNo_sub['BACKGROUND']
-        FWHM_IMAGE_sub      = df_sciYes_posYes_negNo_sub['FWHM_IMAGE']
-        FWHM_WORLD_sub      = df_sciYes_posYes_negNo_sub['FWHM_WORLD']
-        ISOAREAF_IMAGE_sub   = df_sciYes_posYes_negNo_sub['ISOAREAF_IMAGE']
-        ELLIPTICITY_sub     = df_sciYes_posYes_negNo_sub['ELLIPTICITY']
-        FLAGS_sub           = df_sciYes_posYes_negNo_sub['FLAGS']
-        CLASS_STAR_sub      = df_sciYes_posYes_negNo_sub['CLASS_STAR']
-        SPREAD_MODEL_sub    = df_sciYes_posYes_negNo_sub['SPREAD_MODEL']
+        RA_sub              = np.array(df_sciYes_posYes_negNo_sub['X_WORLD'])
+        DEC_sub             = np.array(df_sciYes_posYes_negNo_sub['Y_WORLD'])
+        FLUX_RADIUS_sub     = np.array(df_sciYes_posYes_negNo_sub['FLUX_RADIUS'])
+        FLUX_APER_sub       = np.array(df_sciYes_posYes_negNo_sub['FLUX_APER'])
+        FLUXERR_APER_sub    = np.array(df_sciYes_posYes_negNo_sub['FLUXERR_APER'])
+        MAG_AUTO_sub        = np.array(df_sciYes_posYes_negNo_sub['MAG_AUTO'])
+        MAGERR_AUTO_sub     = np.array(df_sciYes_posYes_negNo_sub['MAGERR_AUTO'])
+        MAG_MODEL_sub       = np.array(df_sciYes_posYes_negNo_sub['MAG_MODEL'])
+        MAGERR_MODEL_sub    = np.array(df_sciYes_posYes_negNo_sub['MAGERR_MODEL'])
+        BACKGROUND_sub      = np.array(df_sciYes_posYes_negNo_sub['BACKGROUND'])
+        FWHM_IMAGE_sub      = np.array(df_sciYes_posYes_negNo_sub['FWHM_IMAGE'])
+        FWHM_WORLD_sub      = np.array(df_sciYes_posYes_negNo_sub['FWHM_WORLD'])
+        ISOAREAF_IMAGE_sub  = np.array(df_sciYes_posYes_negNo_sub['ISOAREAF_IMAGE'])
+        ELLIPTICITY_sub     = np.array(df_sciYes_posYes_negNo_sub['ELLIPTICITY'])
+        FLAGS_sub           = np.array(df_sciYes_posYes_negNo_sub['FLAGS'])
+        CLASS_STAR_sub      = np.array(df_sciYes_posYes_negNo_sub['CLASS_STAR'])
+        SPREAD_MODEL_sub    = np.array(df_sciYes_posYes_negNo_sub['SPREAD_MODEL'])
 
-        candidate_list  = np.transpose([RA_sci,DEC_sci,RA_sub,DEC_sub,
-                                        FLUX_RADIUS_sci, FLUX_RADIUS_sub,
-                                        FLUX_APER_sci,FLUXERR_APER_sci, FLUX_APER_sub,FLUXERR_APER_sub,
-                                        MAG_AUTO_sci,MAGERR_AUTO_sci,   MAG_AUTO_sub,MAGERR_AUTO_sub,
-                                        MAG_MODEL_sci,MAGERR_MODEL_sci, MAG_MODEL_sub,MAGERR_MODEL_sub,
-                                        BACKGROUND_sci, BACKGROUND_sub, 
-                                        FWHM_IMAGE_sci,FWHM_WORLD_sci,  FWHM_IMAGE_sub,FWHM_WORLD_sub,
-                                        ISOAREAF_IMAGE_sci,  ISOAREAF_IMAGE_sub,
-                                        ELLIPTICITY_sci, ELLIPTICITY_sub,
-                                        FLAGS_sci, FLAGS_sub,
-                                        CLASS_STAR_sci,CLASS_STAR_sub,
-                                        SPREAD_MODEL_sci, SPREAD_MODEL_sub])
+        aaa = [RA_sci,DEC_sci,RA_sub,DEC_sub,
+            FLUX_RADIUS_sci, FLUX_RADIUS_sub,
+            FLUX_APER_sci,FLUXERR_APER_sci, FLUX_APER_sub,FLUXERR_APER_sub,
+            MAG_AUTO_sci,MAGERR_AUTO_sci,   MAG_AUTO_sub,MAGERR_AUTO_sub,
+            MAG_MODEL_sci,MAGERR_MODEL_sci, MAG_MODEL_sub,MAGERR_MODEL_sub,
+            BACKGROUND_sci, BACKGROUND_sub, 
+            FWHM_IMAGE_sci,FWHM_WORLD_sci,  FWHM_IMAGE_sub,FWHM_WORLD_sub,
+            ISOAREAF_IMAGE_sci, ISOAREAF_IMAGE_sub,
+            ELLIPTICITY_sci, ELLIPTICITY_sub,
+            FLAGS_sci, FLAGS_sub,
+            CLASS_STAR_sci,CLASS_STAR_sub,
+            SPREAD_MODEL_sci, SPREAD_MODEL_sub]
+
+        candidate_list  = np.transpose(aaa)
         np.savetxt(candidate_list_file, (candidate_list),fmt='%s',header=h)
 
     elif no_candidates == True:
