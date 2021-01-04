@@ -84,6 +84,35 @@ __email__       = "zhang.jielai@gmail.com"
 # ======= Other Functions =======
 #################################
 
+def write_empty_region_file(region_file):
+    # Write region file only with error region. 
+    fp = open(region_file, "w")
+    fp.write('# Region file format: DS9 version 4.0')
+    fp.write('# No candidates detected.')
+    fp.write("j2000; circle 326.65958333 -81.0772222 7.5' #color=yellow")
+    fp.close()
+    return region_file
+
+def write_empty_candidate_list_file(candidate_list_file):
+    # Write empty candidate list file
+    fp = open(candidate_list_file, "w")
+    fp.write('# No candidates detected.\n')
+    fp.close()
+    return candidate_list_file
+
+def write_empty_ds9commands_file(ds9commands_file,sub_fits,sci_fits,neg_fits):
+
+    # visually inspect sci, sub, neg
+    f_ds9 = open(ds9commands_file, "w")
+    f_ds9.write("# ====================================================\n")
+    f_ds9.write(f'# {sub_cat}')
+    command =   f'ds9 -zscale -lock frame wcs {sub_fits} {sci_fits} {neg_fits} &' 
+    f_ds9.write(command)
+    f_ds9.write('')
+    f_ds9.close()
+
+    return ds9commands_file
+
 def find_transientCandidates_(sub_cat, sci_cat, neg_cat, 
                               sub_fits,sci_fits,neg_fits,
                               savedir='./',
@@ -120,9 +149,18 @@ def find_transientCandidates_(sub_cat, sci_cat, neg_cat,
 
     # ..............................................................
     # Read in catalogs.
+    # If sub catalog is empty, skip
+    try:
+        dat_pos = ascii.read(sub_cat)
+    except:
+        write_empty_region_file(region_file)
+        write_empty_candidate_list_file(candidate_list_file)
+        candidate_list = [] # create empty candidate list for return
+        write_empty_ds9commands_file(ds9commands_file,sub_fits,sci_fits,neg_fits)
+        print('Empty catalog for subtraction image.')
+        return region_file, candidate_list_file, candidate_list, ds9commands_file
     dat_neg = ascii.read(neg_cat) 
-    dat_sci = ascii.read(sci_cat)
-    dat_pos = ascii.read(sub_cat) 
+    dat_sci = ascii.read(sci_cat) 
 
     # ..............................................................
     # Turn it into pandas data frame. 
@@ -527,7 +565,7 @@ def find_transientCandidates(sub_cat, sci_cat, neg_cat, sub_fits, sci_fits, neg_
             upto_number += 1
             if verbose:
                 print('#-------------------------------')
-                print(f'...Processing file {upto_number} out of {len(sub_cat_list)}.')
+                print(f'...Processing file {upto_number} out of {len(sub_cat_list)}: {sci.split("/")[-1]}.')
             (region_file, 
             candidate_list_file, 
             candidate_list,
