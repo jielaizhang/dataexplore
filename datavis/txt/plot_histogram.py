@@ -50,8 +50,6 @@ def plot_histogram_array(data_toplot, outfile=False, n_bins=None, delimiter=None
     
     if outfile:
         plt.savefig(outfile)
-    else:
-        plt.show()
 
     # Print out info
     if verbose:
