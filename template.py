@@ -19,6 +19,7 @@ Options:
 
 Examples:
 from datastats.measure_psf import measure_psf
+from misc.convert_wavelength_frequency_energy import eVs_to_Hzs
 """
 import docopt
 import astropy.io.fits as fits
