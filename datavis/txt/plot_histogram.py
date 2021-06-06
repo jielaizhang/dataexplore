@@ -19,6 +19,7 @@ Options:
     -b NUMBER, --bins number                The number of bins in histogram [default: None]
 
 Examples:
+from datavis.txt.plot_histogram import plot_histogram_array
 """
 
 import docopt
@@ -28,6 +29,33 @@ import matplotlib.pyplot as plt
 import pylab
 from matplotlib.ticker import FormatStrFormatter
 
+def plot_histogram_array(data_toplot, outfile=False, n_bins=None, delimiter=None, verbose=False):
+    '''output png file containing 
+    a histogram of given column of text file'''
+
+
+    # Determine n_bins
+    if n_bins == None:
+        n_bins = int(len(data_toplot)/10.)
+    else:
+        n_bins = int(n_bins)
+
+    # Plot histogram
+    print('Creating histogram, please wait.')
+    fig = plt.figure(1)
+    ax  = fig.add_subplot(111)
+    n,bins,patches = pylab.hist(data_toplot,n_bins)
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+    print('Histograph created: ',outfile)
+    
+    if outfile:
+        plt.savefig(outfile)
+
+    # Print out info
+    if verbose:
+        print('VERBOSE: File saved: ',outfile)
+
+    return None
 
 def plot_histogram(textfile, column, outfile='histogram.png', n_bins=None, delimiter=None, verbose=False):
     '''Input text file and column number, output png file containing 
