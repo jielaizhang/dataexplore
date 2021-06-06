@@ -149,7 +149,6 @@ if __name__ == "__main__":
     quietmode       = arguments['--quietmode']
     if debugmode:
         print(arguments)   
-    saveloc            = arguments['--out']
     input_deg          = arguments['deg2sexagecimal']
     input_sexagecimal  = arguments['sexagesimal2deg']
     RA                 = arguments['<RA>']
