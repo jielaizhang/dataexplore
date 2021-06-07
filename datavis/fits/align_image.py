@@ -105,7 +105,8 @@ def align_image(f1,f2,savedir='./',swarploc='/opt/local/bin',verbose=False,debug
     print_debug_string(printme,debugmode=debugmode)
 
     # Run SWarp
-    swarpcommand = f'{swarploc} {f1} {f2} -SUBTRACT_BACK N -RESAMPLE Y -COMBINE N -CENTER_TYPE MOST -IMAGE_SIZE {XLEN},{YLEN} -RESAMPLE_DIR {savedir} -VERBOSE_TYPE {verbosity}'
+    # swarpcommand = f'{swarploc} {f1} {f2} -SUBTRACT_BACK N -RESAMPLE Y -COMBINE N -CENTER_TYPE MOST -IMAGE_SIZE {XLEN},{YLEN} -RESAMPLE_DIR {savedir} -VERBOSE_TYPE {verbosity}'
+    swarpcommand = f'{swarploc} {f1} {f2} -VMEM_MAX 10000 -MEM_MAX 5000 -COMBINE_BUFSIZE 5000 -SUBTRACT_BACK N -RESAMPLE Y -COMBINE N -CENTER_TYPE MOST -IMAGE_SIZE {XLEN},{YLEN} -RESAMPLE_DIR {savedir} -VERBOSE_TYPE {verbosity}'
     subprocess.call(swarpcommand,shell=True)
 
     # If debug, print temporary files that were deleted
