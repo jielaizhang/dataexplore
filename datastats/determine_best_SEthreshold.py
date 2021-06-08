@@ -171,7 +171,7 @@ def determine_best_SEthreshold(fitsfile,saveloc='./SEthreshold.png',
     # Clean up and remove everything in temporary folder and the temporary folder itself
     shutil.rmtree(temp_dir) 
 
-    return None
+    return saveloc
 
 
 ############################################################################
