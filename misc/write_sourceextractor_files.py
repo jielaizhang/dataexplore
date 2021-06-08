@@ -24,6 +24,7 @@ Examples:
 
 import docopt, os
 import subprocess
+import sys
 
 ####################### Source Extractor Files Templates #######################
 
@@ -176,6 +177,7 @@ def write_sourceextractor_files(outdirectory,file_start_string,spreadmodel=False
         print('ERROR: NOT SAVED: ',config_path)
         print(f'ERROR: Is this the right source extractor loc: {sextractorloc}')
         print(f'ERROR: If not, add this option: sextractorloc="path", or -s path in command line')
+        sys.exit('Cannot continue')
 
     if not quietmode:
         print('Saved: ',nnw_path)
