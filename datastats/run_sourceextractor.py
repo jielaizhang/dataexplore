@@ -37,6 +37,9 @@ import pandas as pd
 import numpy as np
 import ntpath, shutil
 import time
+import string    
+import random
+import shutil
 
 # Jielai Modules
 from datastats.measure_psf import measure_psf
@@ -72,11 +75,17 @@ def run_sourceExtractor(fitsfiles,spreadmodel=False,
     if savecats_dir == None:
         savecats_dir = './'
 
+    # Create temporary folder for source extractor input files
+    S=5
+    ran = ''.join(random.choices(string.ascii_uppercase + string.digits, k = S))
+    temp_dir = './SE_temporary_'+ran
+    os.makedirs(temp_dir)
+
     # Create temporary files required for Source Extractor
     (nnw_path, 
     conv_path, 
     params_path, 
-    config_path) = write_sourceextractor_files('./','run_sourceextractor',spreadmodel=spreadmodel,
+    config_path) = write_sourceextractor_files(temp_dir,'run_sourceextractor',spreadmodel=spreadmodel,
                                                 sextractorloc=sextractorloc,quietmode=quietmode)
 
 
@@ -174,7 +183,7 @@ def run_sourceExtractor(fitsfiles,spreadmodel=False,
                 print('Command used:\n%s\n'%command)
 
     # Remove temporary files required for Source Extractor
-    remove_temp_files([nnw_path,conv_path,params_path,config_path])
+    shutil.rmtree(temp_dir)
     
     return catfiles, catted_fitsfiles 
 
