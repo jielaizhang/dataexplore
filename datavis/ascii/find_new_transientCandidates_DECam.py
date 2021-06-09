@@ -187,8 +187,8 @@ def find_new_transientCandidates_DECam(f_sub_cat, f_sci_cat, f_neg_cat, f_templ_
         startangles=['0']*len(Rs_sciYes_posYes_negNo)
         stopangles =['360']*len(Rs_sciYes_posYes_negNo)
         nangles    =['4']*len(Rs_sciYes_posYes_negNo)
-        inners     =['0.003']*len(Rs_sciYes_posYes_negNo)
-        outers     =['0.0035']*len(Rs_sciYes_posYes_negNo)
+        inners     =['0.002']*len(Rs_sciYes_posYes_negNo)
+        outers     =['0.0025']*len(Rs_sciYes_posYes_negNo)
         nradiuss   =['1']*len(Rs_sciYes_posYes_negNo)
         h       = 'Region file format: DS9 version 4.0'
         savetext = np.transpose([j2000s,Shapes,Rs_sciYes_posYes_negNo,Ds_sciYes_posYes_negNo,
