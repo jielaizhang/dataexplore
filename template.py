@@ -28,6 +28,8 @@ import sys, os
 import ntpath
 from pathlib import Path
 from datetime import datetime
+import string
+import random
 
 import copy
 
@@ -86,7 +88,13 @@ def XXX(verbose=False,debugmode=False,quietmode=False):
     # Convert to dt
     dt = datetime.strptime(sunset_CT.iso, '%Y-%m-%d %H:%M:%S.%f') #2020-10-23 16:01:22.058 
     
+    # Random string
+    S=5 # number of characters in random string
+    ran = ''.join(random.choices(string.ascii_uppercase + string.digits, k = S))
 
+    # Make temporoary random directory
+    temp_dir = './temporary_'+ran
+    os.makedirs(temp_dir)
 
     # Saving fits file
     fits.writeto(output,stellar_mask) 
