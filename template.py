@@ -30,6 +30,8 @@ from pathlib import Path
 from datetime import datetime
 import string
 import random
+import pandas as pd
+import astropy.io.ascii as ascii
 
 import copy
 
@@ -100,6 +102,11 @@ def XXX(verbose=False,debugmode=False,quietmode=False):
     fits.writeto(output,stellar_mask) 
     printme = f'SAVED  : {output}'
     print(printme)
+
+    # Reading in csvs
+    a  = ascii.read(f)
+    df = pd.DataFrame(a.as_array())
+    new_df = df[df['column']>3]
 
     # Plot
     fig	= plt.figure()
