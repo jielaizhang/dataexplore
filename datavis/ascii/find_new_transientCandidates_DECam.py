@@ -110,7 +110,7 @@ def find_new_transientCandidates_DECam(f_sub_cat, f_sci_cat, f_neg_cat, f_templ_
 
     # Round 1: some positive detections made
     if len(df_pos_select) == 0:
-        print('No subtraction sources has passed tests up to this point.')
+        print('No subtraction sources were detected.')
         no_candidates                     = True
         no_sciYes_posYes_candidates       = True
         no_sciYes_posYes_negNo_candidates = True
@@ -123,9 +123,10 @@ def find_new_transientCandidates_DECam(f_sub_cat, f_sci_cat, f_neg_cat, f_templ_
     # Round 2: for each science detection there is a positive detection associated
     if no_candidates == False:
         if len(df_sciYes_posYes) == 0:
-            print('No positive sources with matching subtraction sources has passed tests up to this point.')
+            print('No subtraction sources were found to have a match in the science source list.')
             no_sciYes_posYes_candidates       = True
             no_sciYes_posYes_negNo_candidates = True
+            no_sciYes_posYes_negNo_templNo_candidates = True
         else:        
             # Get sci/sub matched with no nearby neg
             radius_threshold = 4 * u.arcsec
@@ -135,8 +136,9 @@ def find_new_transientCandidates_DECam(f_sub_cat, f_sci_cat, f_neg_cat, f_templ_
     # Round 3: for each sci/sub pair, there is no nearby negative detection
     if no_sciYes_posYes_candidates == False:
         if len(df_sciYes_posYes_negNo) == 0:
-            print('No positive sources with matching subtraction sources with no nearby negative sources has passed tests up to this point.')
-            no_sciYes_posYes_negNo_candidates = True
+            print('No positive sources with matching subtraction sources with no nearby negative sources has been found.')
+            no_sciYes_posYes_negNo_candidates = True    
+            no_sciYes_posYes_negNo_templNo_candidates = True
         else:
             # Get sci/sub/no nearby neg with no templ
             radius_threshold = 1.1 * u.arcsec # Seeing ~0.8-1.2 at DECam
@@ -146,7 +148,7 @@ def find_new_transientCandidates_DECam(f_sub_cat, f_sci_cat, f_neg_cat, f_templ_
     # Round 4: for each sci/sub/no neg source, there is no associated source in template
     if no_sciYes_posYes_negNo_candidates == False:
         if len(df_sciYes_posYes_negNo_templNo) == 0:
-            print('No pos sources with matching sub srcs with no nearby neg sources and no associated template source passed tests up to this point.')
+            print('No pos sources with matching sub srcs with no nearby neg sources and no associated template source has been found.')
             no_sciYes_posYes_negNo_templNo_candidates = True
             
     if verbose:
@@ -173,6 +175,15 @@ def find_new_transientCandidates_DECam(f_sub_cat, f_sci_cat, f_neg_cat, f_templ_
         np.savetxt(reg_sciYes_subYes, (savetext),fmt='%s',header=h)
         if verbose:
             print(f'\nSaved: {reg_sciYes_subYes}')
+    else:
+        # Save empty region file.
+        h       = 'Region file format: DS9 version 4.0; Yes, this file is empty of regions, however, it should not happen!.'
+        f_open= open(reg_sciYes_subYes,"w+")
+        f_open.write(h)
+        f_open.close()
+        if verbose:
+            print(f'Saved: {reg_sciYes_subYes}')
+
 
     # ..............................................................
     # Make Region files of sources matched in Sci and Sub and not in Neg
@@ -196,6 +207,15 @@ def find_new_transientCandidates_DECam(f_sub_cat, f_sci_cat, f_neg_cat, f_templ_
         np.savetxt(reg_sciYes_subYes_negNo, (savetext),fmt='%s',header=h)
         if verbose:
             print(f'Saved: {reg_sciYes_subYes_negNo}')
+    else:
+        # Save empty region file.
+        h       = 'Region file format: DS9 version 4.0; Yes, this file is empty of regions, however, it is a bit surprising.'
+        f_open= open(reg_sciYes_subYes_negNo,"w+")
+        f_open.write(h)
+        f_open.close()
+        if verbose:
+            print(f'Saved: {reg_sciYes_subYes_negNo}')
+
 
     # ..............................................................
     # Make Region files of sources matched in Sci and Sub and not in Neg
@@ -219,6 +239,16 @@ def find_new_transientCandidates_DECam(f_sub_cat, f_sci_cat, f_neg_cat, f_templ_
         np.savetxt(reg_sciYes_subYes_negNo_templNo, (savetext),fmt='%s',header=h)
         if verbose:
             print(f'Saved: {reg_sciYes_subYes_negNo_templNo}')
+    else:
+        # Save empty region file.
+        h       = 'Region file format: DS9 version 4.0; Yes, this file is empty of regions.'
+        f_open= open(reg_sciYes_subYes_negNo_templNo,"w+")
+        f_open.write(h)
+        f_open.close()
+        if verbose:
+            print(f'Saved: {reg_sciYes_subYes_negNo_templNo}')
+
+        
 
     # ..............................................................
     # Helpful ds9 command hint:
