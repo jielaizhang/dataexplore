@@ -38,7 +38,7 @@ import copy
 __author__      = "Jielai Zhang"
 __license__     = "MIT"
 __version__     = "1.0.1"
-__date__        = "2020-05-07"
+__date__        = "2021-06-07"
 __maintainer__  = "Jielai Zhang"
 __email__       = "zhang.jielai@gmail.com"
 
