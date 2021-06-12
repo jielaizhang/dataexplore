@@ -114,6 +114,7 @@ def find_new_transientCandidates_DECam(f_sub_cat, f_sci_cat, f_neg_cat, f_templ_
         no_candidates                     = True
         no_sciYes_posYes_candidates       = True
         no_sciYes_posYes_negNo_candidates = True
+        no_sciYes_posYes_negNo_templNo_candidates = True
     else:
         # Get sci and sub matched
         radius_threshold = 1.1 * u.arcsec # Seeing ~0.8-1.2 at DECam
