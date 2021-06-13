@@ -63,16 +63,23 @@ def correct_photometry(f_ref_cat,f_sci_cat,savedir=None,
         print(f'DEBUG: The number of ref+sci matched sources = {len(df_ref_matched)}') 
 
     # Calculate ZP
-    ref_mags = np.array([float(x) for x in df_ref_matched[REF_PHOTOM_KEY]])
+    try:
+        ref_mags = np.array([float(x) for x in df_ref_matched[REF_PHOTOM_KEY]])
+    except:
+        ref_mags_temp = np.array(df_ref_matched[REF_PHOTOM_KEY])
+        for ii,v in enumerate(ref_mags_temp):
+            if v == 'NA':
+                ref_mags_temp[ii] = np.nan
+        ref_mags = np.array([float(x) for x in ref_mags_temp])
     sci_mags = np.array([float(x) for x in df_sci_matched[SCI_PHOTOM_KEY]])
     zps      = ref_mags - sci_mags
     if debugmode:
-        print(f'DEBUG: The average {SCI_PHOTOM_KEY} of matched sci sources is {np.average(sci_mags)}')
-        print(f'DEBUG: The average {REF_PHOTOM_KEY} of matched ref sources is {np.average(ref_mags)}')
-        print(f'DEBUG: The average of the difference is: {np.average(zps)}')
-        print(f'DEBUG: The median of the difference is: {np.median(zps)}')
+        print(f'DEBUG: The average {SCI_PHOTOM_KEY} of matched sci sources is {np.nanmean(sci_mags)}')
+        print(f'DEBUG: The average {REF_PHOTOM_KEY} of matched ref sources is {np.nanmean(ref_mags)}')
+        print(f'DEBUG: The average of the difference is: {np.nanmean(zps)}')
+        print(f'DEBUG: The median of the difference is: {np.nanmedian(zps)}')
         print('DEBUG: Use the median difference to correct photometry.')
-    ZP = np.median(zps)
+    ZP = np.nanmedian(zps)
 
     # Calculate corrected photometry
     new_sci_mag = df_sci[SCI_PHOTOM_KEY]+ZP
