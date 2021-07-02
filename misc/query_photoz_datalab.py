@@ -1,5 +1,6 @@
 # Author: Igor Andreoni
 # Taken from: https://github.com/igorandreoni/snippets/blob/master/query_photoz_datalab.py
+# Minor edits by Jielai Zhang
 
 # Note for type column:
 # PSF=stellar
@@ -17,7 +18,7 @@ from dl import queryClient as qc
 
 def query_coords_ls(ra,dec,radius_arcsec=5,
                          radius_nuclear=1., catalog='dr8_north', datalab=True,
-                         check_quality=True):
+                         check_quality=True,print_results=True):
     '''Query the database to search for matches at the given coordinates'''
 
     #Crossmatch with photoz database
@@ -47,9 +48,12 @@ def query_coords_ls(ra,dec,radius_arcsec=5,
                 if float(sep[i].arcsec) < radius_arcsec:
                     result.append(result0[i])
 
-        print("z_phot_median, z_phot_std, z_phot_l95, ra, dec, type, flux_z, dist(arcsec)")
-        for r in result:
-            print(r)
+        if print_results:
+            print("z_phot_median, z_phot_std, z_phot_l95, ra, dec, type, flux_z, dist(arcsec)")
+            for r in result:
+                print(r)
+
+        return result
 
 
 if __name__ == '__main__':
