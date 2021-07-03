@@ -3,7 +3,7 @@
 """create_cutouts.py - Create cutouts based on max, min RA and max, min dec or Centre RA/DEC and radius. Cutout fits file will have the right wcs information. 
 
 Usage:
-    create_cutouts [-h] [-v] [-d] [--corners STRING] [-centre STRING] [-radius STRING] [-o DIRECTORY] <image>...
+    create_cutouts [-h] [-v] [-d] [--corners STRING] [--centre STRING] [--radius STRING] [-o DIRECTORY] <image>...
 
 Options:
     -h, --help                  Show this screen [default: False]
@@ -17,58 +17,42 @@ Options:
 
 import docopt
 import astropy.io.fits as fits
-from astropy import wcs
-import numpy
 import os
+import ntpath
+from pathlib import Path
+from astropy.nddata import Cutout2D
+from astropy import units as u
+from astropy.wcs import WCS
+from astropy.coordinates import SkyCoord
 
-def sexi2deci(RA,dec):
-    # Not used
-    # Convert sexigesimal string coords to decimal floats
-    #RAmax_deci,decmax_deci  = sexi2deci(RAmax,decmax)
-    #RAmin_deci,decmin_deci  = sexi2deci(RAmin,decmin)
-
-    # Calculate RA in decimal format
-    RA_hr   = float(RA.split(':')[0])
-    RA_min  = float(RA.split(':')[1])
-    RA_sec  = float(RA.split(':')[2])
-    RA_deci = (RA_hr + RA_min/60.0 + RA_sec/60.0/60.0)*15 
-
-    # Calculate dec in decimal format
-    dec_deg = float(dec.split(':')[0])
-    dec_min = float(dec.split(':')[1])
-    dec_sec = float(dec.split(':')[2])
-
-    # Take into account if dec is neg or pos
-    dec_sign = numpy.sign(dec_deg)
-    if dec_sign > 0:
-        dec_deci = dec_deg + dec_min/60.0 + dec_sec/60.0/60.0
-    else:
-        dec_deci = dec_deg - dec_min/60.0 - dec_sec/60.0/60.0
-
-    return RA_deci, dec_deci
-
-def mkdirp(dirpath,,debug=False):
+def mkdirp(dirpath,debug=False):
     if not os.path.isdir(dirpath):
         os.makedirs(dirpath)
         if debug:
             print(f'DEBUG: created directory {dirpath}')
     return None
 
-def create_cutouts_centre(fitsfile,RADECcentre,radius,outdir,verbose=False,debug=False):
-    return cutout, cutout_file
+def create_cutout_centre(fitsfile,RA,DEC,image_size,verbose=False,debug=False):
+    # Read data
+    d,h = fits.getdata(fitsfile,header=True)
+    w = WCS(h)
+    # Get position in SkyCoords
+    pos = SkyCoord(RA, DEC, unit=u.deg)
+    # Create cutout
+    cutout = Cutout2D(d, size=image_size, position=pos, wcs=w)
+    # Create new cutout header with right WCS
+    cutout_header = h.update(cutout.wcs.to_header())
+    return cutout.data, cutout_header
 
-def create_cutouts_corners(filesfile,RADECcorners,outdir,verbose=False,debug=False):
-
-    # Read in RA DEC min maxes
-    RAmin,RAmax,DECmin,DECmax = [float(x) for x in RADECcorners.split(',')]
+def create_cutout_corners(filesfile,RAmin,RAmax,DECmin,DECmax,verbose=False,debug=False):
 
     # read in image and WCS
-    d,h = fits.getdata(image,header=True)
-    w = wcs.WCS(h)
+    d,h = fits.getdata(filesfile,header=True)
+    w = WCS(h)
 
     # Convert decimial RA, dec to pixel values
-    [[x1,y1],[x2,y2]]=w.wcs_world2pix([ [RAmax_deci,decmax_deci],
-                                        [RAmin_deci,decmin_deci] ],1)
+    [[x1,y1],[x2,y2]]=w.wcs_world2pix([ [RAmax,DECmax],
+                                        [RAmin,DECmin] ],1)
 
     # Order x, y pixel values to max and min
     xmax = int(max(x1,x2))
@@ -76,13 +60,13 @@ def create_cutouts_corners(filesfile,RADECcorners,outdir,verbose=False,debug=Fal
     ymax = int(max(y1,y2))
     ymin = int(min(y1,y2))
 
-    # print out pixel cutout values if verbose
+    # print out pixel cutout values if debug
     if debug:
-        print('For image ' + image + ' the cutout limits in pixel values are:')
-        print('xmax: ',xmax)
-        print('xmin: ',xmin)
-        print('ymax: ',ymax)
-        print('ymin: ',ymin)
+        print('DEBUG: For image ' + image + ' the cutout limits in pixel values are:')
+        print('DEBUG: xmax: ',xmax)
+        print('DEBUG: xmin: ',xmin)
+        print('DEBUG: ymax: ',ymax)
+        print('DEBUG: ymin: ',ymin)
     
     # Grab cutout of larger image, WCS does not need to update. 
     # Rotation, scaling should remain the same with the reference pixel changed.
@@ -91,25 +75,66 @@ def create_cutouts_corners(filesfile,RADECcorners,outdir,verbose=False,debug=Fal
     # Don't use this because it changes CD to PC matrices
     # new wcs = w[ymin:ymax,xmin:xmax].to_header()
     new_h['CRPIX2']=h['CRPIX2']-ymin
-    new_h['CRPIX1']=h['CRPIX1']-xmin
-
-    # Save cutout image with correct wcs
-    basename    = image.split('/')[-1]
-    stemname    = basename.split('.')[0]
-    saveloc     = outdir+'/'+stemname+'_cutout.fits'
-    fits.writeto(saveloc, new_d, new_h, overwrite=True)    
+    new_h['CRPIX1']=h['CRPIX1']-xmin  
     
-    return new_d, new_h, saveloc
+    return new_d, new_h
 
 
 def create_cutouts(in_images,RADECcorners,RADECcentre,radius,outdir,verbose=False,debug=False):
+    '''this function is mainly for use when doing stuff in terminal'''
     mkdirp(outdir)
 
-    for fitsfile in in_images:
-        
+    if debug:
+        print('DEBUG: debugging...')
 
-    
-    return cutout, cutout_file
+    cutout_files = []
+
+    if RADECcentre != None:
+        if debug:
+            print(f'DEBUG: RADECcentre = {RADECcentre}')
+        # Get right image size
+        radius,unit = radius.split(',')
+        radius = float(radius)
+        if unit == 'arcsec':
+            image_size = radius*u.arcsec
+        elif unit == 'arcmin':
+            image_size = radius*u.arcmin
+        elif unit == 'deg':
+            image_size = radius*u.deg
+        else:
+            print('Warning: assuming radius is entered in ARCSEC units.')
+            image_size = radius*u.arcsec    
+        # Get image centre
+        RA,DEC = [float(x) for x in RADECcentre.split(',')]
+
+    elif RADECcorners != None:
+        if debug:
+            print(f'DEBUG: RADECcorners = {RADECcorners}')
+        # Read in RA DEC min maxes
+        RAmin,RAmax,DECmin,DECmax = [float(x) for x in RADECcorners.split(',')]
+
+
+    for fitsfile in in_images:
+        # Create cutout
+        if RADECcentre != None:
+            cutout,cutout_header = create_cutout_centre(fitsfile,
+                                                        RA,DEC,
+                                                        image_size,
+                                                        outdir)
+        elif RADECcorners != None:
+            cutout,cutout_header = create_cutout_corners(fitsfile,
+                                                            RAmin,RAmax,DECmin,DECmax,
+                                                            verbose=verbose,debug=debug)
+        
+        # Save cutout image with correct wcs
+        stub        = Path(ntpath.basename(fitsfile)).stem
+        saveloc     = outdir + os.path.sep + stub + '_cutout.fits'
+        fits.writeto(saveloc, cutout, cutout_header, overwrite=True) 
+        if verbose:
+            print(f'VERBOSE: saved {saveloc}') 
+        cutout_files.append(saveloc)
+
+    return cutout_files
 
 #################### Main part of the program ####################
 
@@ -117,13 +142,14 @@ if __name__=='__main__':
 
     # Read in arguments
     arguments   = docopt.docopt(__doc__)
+    debug       = arguments['--debug']
     if debug:
         print(arguments)
-    in_images   = arguments['<image>']
-    outdir      = arguments['--outdir']
-    debug       = arguments['--debug']
+    verbose      = arguments['--verbose']
+    in_images    = arguments['<image>']
+    outdir       = arguments['--outdir']
+    RADECcorners = arguments['--corners']
+    RADECcentre  = arguments['--centre']
+    radius       = arguments['--radius']
 
-    # Make cutouts for each image and write out correct wcs
-    for image in in_images:
-
-
+    _ = create_cutouts(in_images,RADECcorners,RADECcentre,radius,outdir,verbose=verbose,debug=debug)
