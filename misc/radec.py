@@ -120,6 +120,32 @@ def sexagesimal2degs(RADECS,verbose=False,debugmode=False,quietmode=False):
     print('Not implemented yet')
     return None
 
+def sexi2deci(RA,dec):
+    # Not used
+    # Convert sexigesimal string coords to decimal floats
+    #RAmax_deci,decmax_deci  = sexi2deci(RAmax,decmax)
+    #RAmin_deci,decmin_deci  = sexi2deci(RAmin,decmin)
+
+    # Calculate RA in decimal format
+    RA_hr   = float(RA.split(':')[0])
+    RA_min  = float(RA.split(':')[1])
+    RA_sec  = float(RA.split(':')[2])
+    RA_deci = (RA_hr + RA_min/60.0 + RA_sec/60.0/60.0)*15 
+
+    # Calculate dec in decimal format
+    dec_deg = float(dec.split(':')[0])
+    dec_min = float(dec.split(':')[1])
+    dec_sec = float(dec.split(':')[2])
+
+    # Take into account if dec is neg or pos
+    dec_sign = numpy.sign(dec_deg)
+    if dec_sign > 0:
+        dec_deci = dec_deg + dec_min/60.0 + dec_sec/60.0/60.0
+    else:
+        dec_deci = dec_deg - dec_min/60.0 - dec_sec/60.0/60.0
+
+    return RA_deci, dec_deci
+
 def deg2sexagecimals(RADECSverbose=False,debugmode=False,quietmode=False):
     print('Not implemented yet')
     return None
