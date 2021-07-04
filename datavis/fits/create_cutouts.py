@@ -41,8 +41,8 @@ def create_cutout_centre(fitsfile,RA,DEC,image_size,verbose=False,debug=False):
     # Create cutout
     cutout = Cutout2D(d, size=image_size, position=pos, wcs=w)
     # Create new cutout header with right WCS
-    cutout_header = h.update(cutout.wcs.to_header())
-    return cutout.data, cutout_header
+    h.update(cutout.wcs.to_header())
+    return cutout.data, h
 
 def create_cutout_corners(filesfile,RAmin,RAmax,DECmin,DECmax,verbose=False,debug=False):
 
