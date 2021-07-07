@@ -54,7 +54,7 @@ def match_catalogs_df(df_ref, df_sci,radius_threshold=2 * u.arcsec,
     
     # Sep constraint
     if find_close:
-        sep_constraint = d2d < radius_threshold
+        sep_constraint = d2d <= radius_threshold
     else:
         sep_constraint = d2d > radius_threshold
 
@@ -66,7 +66,7 @@ def match_catalogs_df(df_ref, df_sci,radius_threshold=2 * u.arcsec,
     
     return df_ref_matched, df_sci_matched
 
-def find_closest_in_cat(RA,DEC, df_sci,radius_threshold=2 * u.arcsec,
+def find_closest_in_cat(df_sci,RA,DEC,radius_threshold=2 * u.arcsec,
                sci_RA_KEY='X_WORLD',sci_DEC_KEY='Y_WORLD'):
     '''Input pandas DataFrame catalog, output line in DataFrame closest in input RA,DEC. 
     All columns in inputs are preserved.
@@ -89,7 +89,7 @@ def find_closest_in_cat(RA,DEC, df_sci,radius_threshold=2 * u.arcsec,
     # Get matched entries in cat_sci
     df_sci_matched = df_sci.iloc[idx[sep_constraint]]
     
-    return df_sci_matched
+    return df_sci_matched,d2d
 
 
 def find_all_within(df_ref, RA,DEC,radius_threshold=2 * u.arcsec,
