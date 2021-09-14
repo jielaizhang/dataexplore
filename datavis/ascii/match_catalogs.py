@@ -10,7 +10,7 @@ from astropy import units as u
 
 def match_catalogs(f_cat_ref, f_cat_sci,radius_threshold=2 * u.arcsec,
                ref_RA_KEY='X_WORLD',ref_DEC_KEY='Y_WORLD',
-               sci_RA_KEY='X_WORLD',sci_DEC_KEY='Y_WORLD'):
+               sci_RA_KEY='X_WORLD',sci_DEC_KEY='Y_WORLD',reindex=True):
     '''Input ascii file for ref and sci catalogs, output pandas DataFrame of 
     matched ref catalog entries and matched sci catalog entries. All columns in inputs are preserved.
     '''
@@ -35,12 +35,18 @@ def match_catalogs(f_cat_ref, f_cat_sci,radius_threshold=2 * u.arcsec,
     # Get matched entries in cat_sci
     df_sci_matched = df_sci.iloc[idx[sep_constraint]]
     
-    return df_ref_matched, df_sci_matched
+    # re-index to match two dfs
+    if reindex:
+        df_ref_matched_reindex=df_ref_matched.reset_index()
+        df_sci_matched_reindex=df_sci_matched.reset_index()
+        return df_ref_matched_reindex, df_sci_matched_reindex
+    else:
+        return df_ref_matched, df_sci_matched
 
 def match_catalogs_df(df_ref, df_sci,radius_threshold=2 * u.arcsec,
                ref_RA_KEY='X_WORLD',ref_DEC_KEY='Y_WORLD',
                sci_RA_KEY='X_WORLD',sci_DEC_KEY='Y_WORLD',
-               find_close=True):
+               find_close=True, reindex=True):
     '''Input pandas data frame object for ref and sci catalogs, output pandas DataFrame of 
     matched ref catalog entries and matched sci catalog entries. All columns in inputs are preserved.
     '''
@@ -63,8 +69,14 @@ def match_catalogs_df(df_ref, df_sci,radius_threshold=2 * u.arcsec,
     
     # Get matched entries in cat_sci
     df_sci_matched = df_sci.iloc[idx[sep_constraint]]
-    
-    return df_ref_matched, df_sci_matched
+
+    # re-index to match two dfs
+    if reindex:
+        df_ref_matched_reindex=df_ref_matched.reset_index()
+        df_sci_matched_reindex=df_sci_matched.reset_index()
+        return df_ref_matched_reindex, df_sci_matched_reindex
+    else:
+        return df_ref_matched, df_sci_matched
 
 def find_closest_in_cat(df_sci,RA,DEC,radius_threshold=2 * u.arcsec,
                sci_RA_KEY='X_WORLD',sci_DEC_KEY='Y_WORLD'):
