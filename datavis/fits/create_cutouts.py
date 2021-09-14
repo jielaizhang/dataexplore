@@ -25,11 +25,30 @@ from astropy import units as u
 from astropy.wcs import WCS
 from astropy.coordinates import SkyCoord
 
+import matplotlib.pyplot as plt
+from astropy.visualization import LinearStretch
+from astropy.visualization import ZScaleInterval
+from astropy.visualization import ImageNormalize
+
+
 def mkdirp(dirpath,debug=False):
     if not os.path.isdir(dirpath):
         os.makedirs(dirpath)
         if debug:
             print(f'DEBUG: created directory {dirpath}')
+    return None
+
+def imshow_zscale(image,fits=False,grid=True,ticks=False):
+    if fits==True:
+        d = fits.getdata(image)
+    else:
+        d=image
+    norm = ImageNormalize(d, interval=ZScaleInterval(),stretch=LinearStretch())
+    plt.imshow(d, cmap=plt.cm.gray, norm=norm, interpolation='none')
+    if ticks:
+        plt.tick_params(labelsize=16)
+    if grid:
+        plt.grid()
     return None
 
 def create_cutout_centre(fitsfile,RA,DEC,image_size,verbose=False,debug=False):
@@ -96,11 +115,11 @@ def create_cutouts(in_images,RADECcorners,RADECcentre,radius,outdir,verbose=Fals
         radius,unit = radius.split(',')
         radius = float(radius)
         if unit == 'arcsec':
-            image_size = radius*u.arcsec
+            image_size = radius*2*u.arcsec
         elif unit == 'arcmin':
-            image_size = radius*u.arcmin
+            image_size = radius*2*u.arcmin
         elif unit == 'deg':
-            image_size = radius*u.deg
+            image_size = radius*2*u.deg
         else:
             print('Warning: assuming radius is entered in ARCSEC units.')
             image_size = radius*u.arcsec    
