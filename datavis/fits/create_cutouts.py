@@ -13,6 +13,9 @@ Options:
     --centre STRING             Cutout's central RA, DEC e.g. 34.3,-30.0
     --radius STRING             Cutout's radius if -C. e.g. 3,arcmin or 30,arcsec or 1,deg
     -o DIRECTORY, --outdir DIRECTORY    Output directory where cutout images are saved [default: .]
+
+Examples:
+    from datavis.fits.create_cutouts import imshow_zscale
 """
 
 import docopt
@@ -98,6 +101,17 @@ def create_cutout_corners(filesfile,RAmin,RAmax,DECmin,DECmax,verbose=False,debu
     
     return new_d, new_h
 
+
+def create_cutout_corners_pixel(image,xmin,xmax,ymin,ymax,fits=False):
+
+    if fits==True:
+        d = fits.getdata(image)
+    else:
+        d=image    
+    # Grab cutout of larger image. 
+    new_d = d[ymin:ymax,xmin:xmax]
+    
+    return new_d
 
 def create_cutouts(in_images,RADECcorners,RADECcentre,radius,outdir,verbose=False,debug=False):
     '''this function is mainly for use when doing stuff in terminal'''
