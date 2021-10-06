@@ -6,6 +6,7 @@ import pandas as pd
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
+# from astropy import units as u
 # from datavis.ascii.match_catalogs import find_closest_in_cat
 
 def match_catalogs(f_cat_ref, f_cat_sci,radius_threshold=2 * u.arcsec,
