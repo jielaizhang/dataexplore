@@ -2,7 +2,7 @@
 
 #!/usr/bin/env python
 
-""" subtract_image.py -- Input two visible wavelength astronomical fits files, image subtraction is carried out using hotpants. Asume images are aligned.
+""" subtract_image.py -- Input two visible wavelength astronomical fits files, image subtraction is carried out using hotpants. Assume images are aligned.
 Usage: subtract_image.py [-h] [-v] [--debug] [-s SAVELOC] [--badpixmapsave] [-o] [--sextractor LOC] <fitsfile1> <fitsfile2>
 
 Arguments:
@@ -95,8 +95,8 @@ def subtract_image(fitsfile1,fitsfile2,saveloc=False,badpixmapsave=False,overwri
         saveit             = False
         saveloc            = './sub_temp.fits'
         saveloc_badpixmap  = './sub_badpixmap_temp.fits'
-        print_verbose_string(f'Temporary hotpants output image saved at: {temp_saveloc}.',verbose=verbose)
-        print_verbose_string(f'Temporary hotpants output image saved at: {saveloc_badpixmap}.',verbose=verbose)
+        print_verbose_string(f'Temporary hotpants output image will be saved at: {saveloc}.',verbose=verbose)
+        print_verbose_string(f'Temporary hotpants output image will be saved at: {saveloc_badpixmap}.',verbose=verbose)
 
     # Set setting for printing out from subfunctions:
     if verbose:
@@ -108,6 +108,8 @@ def subtract_image(fitsfile1,fitsfile2,saveloc=False,badpixmapsave=False,overwri
     print_verbose_string('### Calculating FWHM of two input images ###',verbose=verbose,underscores=True)
     [FWHM1,FWHM2]   = calculate_FWHM([fitsfile1,fitsfile2],sextractorloc=sextractorloc,quietmode=quietmode,verbose=verbose)
     FWHM_larger     = max([FWHM1,FWHM2])
+    if debugmode:
+        print(f'DEBUG: FWHM1 & 2: {FWHM1},{FWHM2}')
 
     # Get parameters required by hotpants: sky values of two images
     print_verbose_string('### Calculating sky params of two input images ###',verbose=verbose,underscores=True)
@@ -124,6 +126,15 @@ def subtract_image(fitsfile1,fitsfile2,saveloc=False,badpixmapsave=False,overwri
     r   = 2.5*FWHM_larger
     rss = 2*2.5*FWHM_larger
 
+    if debugmode:
+        print(f'DEBUG: sky1: {sky1}')
+        print(f'DEBUG: sky2: {sky2}')
+        print(f'DEBUG: tl: {tl}')
+        print(f'DEBUG: il: {il}')
+        print(f'DEBUG: r: {r}')
+        print(f'DEBUG: rss: {rss}')
+
+    
     # Run hotpants to do image subtraction
     print_verbose_string('### Running Hotpants to do Image Subtraction ###',verbose=verbose,underscores=True)
     if verbose:
@@ -131,6 +142,8 @@ def subtract_image(fitsfile1,fitsfile2,saveloc=False,badpixmapsave=False,overwri
     else:
         hotpants_command = f"hotpants -tmplim {fitsfile1} -inim {fitsfile2} -outim {saveloc} -il {il} -tl {tl} -r {r} -rss {rss} -n t -omi {saveloc_badpixmap} -v 0"
     
+    if debugmode:
+        print(f'DEBUG: {hotpants_command}')
     subprocess.call(hotpants_command,shell=True)
 
     # Read in hotpants output files for returning
@@ -142,7 +155,7 @@ def subtract_image(fitsfile1,fitsfile2,saveloc=False,badpixmapsave=False,overwri
     if not saveit:
         clearit(saveloc)
         clearit(saveloc_badpixmap)
-        print_verbose_string(f'Temporary hotpants output image Removed: {temp_saveloc}.',verbose=verbose)
+        print_verbose_string(f'Temporary hotpants output image Removed: {saveloc}.',verbose=verbose)
         print_verbose_string(f'Temporary hotpants output image Removed: {saveloc_badpixmap}.',verbose=verbose)
         print('No output path specified, so no subtraction image will be saved.')
     elif saveit and not badpixmapsave:
