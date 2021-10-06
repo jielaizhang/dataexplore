@@ -27,10 +27,10 @@ Options:
     -v, --verbose                       Print extra information [default: False]
     --debug                             Print extra extra information and save extra files [default: False]
     --sextractorloc LOC                 Source-extractor path [default: /opt/local/bin/source-extractor]
-    -b STRING, --box STRING             Input box parameters: size of box (pixels), number of random boxes to be placed. E.g. 10,100.
+    -b STRING, --box STRING             Input box parameters: size of box (pixels). E.g. 10.
     -a STRING, --annulus STRING         Select annulus with params 'xc1,yc1,a1,b1,ang1,xc2,yc2,a2,b2,ang2', angle in degrees, counter clockwise rotation; place random annuli around inital specs.
     --annulusallover STRING             As above, but when placing annulus around galaxy, let it move around a little more than above option.
-    -n INT, --niterations INT           Input number of random annuli to be placed. (not used for boxes). [default: 100]
+    -n INT, --niterations INT           Input number of random annuli to be placed. (also used for boxes). [default: 100]
     -m FILE, --mask FILE                Input mask to be combined with program calculated source mask. 
     -c, --checkims                      Output two check images for masking and sky regions used. [default: False]
 
@@ -212,7 +212,7 @@ def calculate_stats_andPrint(image,mask,sky_counts,sky_counts_avg,pix_counts,ver
     
     sky = np.average(np.array(sky_counts))
     sky_error = np.std(np.array(sky_counts))
-    sky_pixel_std = np.ma.std(image_masked)
+    sky_pixel_std = np.nanstd(image_masked)
 
     if not quietmode:
         printme = '------------------'
@@ -272,9 +272,9 @@ def calculate_stats_andPrint(image,mask,sky_counts,sky_counts_avg,pix_counts,ver
 
         # Global Stats
         print(' ')
-        printme = f'# Average of all non-masked pixels   : {np.ma.average(image_masked):.4f}'
+        printme = f'# Average of all non-masked pixels   : {np.nanmean(image_masked):.4f}'
         print_verbose_string(printme,verbose=verbose)
-        printme = f'# Median  of all non-masked pixels   : {np.ma.median(image_masked):.4f}'
+        printme = f'# Median  of all non-masked pixels   : {np.nanmedian(image_masked):.4f}'
         print_verbose_string(printme,verbose=verbose)
         printme = f'# Number of unmasked pixels          : {np.ma.sum(image_masked.mask)}'
         print_verbose_string(printme,verbose=verbose)
