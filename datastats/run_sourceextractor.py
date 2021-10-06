@@ -15,7 +15,7 @@ Options:
     --spreadmodel               If on, spread_model, mag_model, magerr_model will be in output catalog [default: False]
     --savecats LOC              Output cat files to this directory. If not input, outputs to same directory as input file.
     --catending STRING          Output cats for each file.fits will be file_STRING.cat, if empty, output will be file.cat.
-    --fwhm FLOAT                The SEEING_FWHM config param for Source Extraction in arcsec [default: 1.2]
+    --fwhm FLOAT                The SEEING_FWHM (for star/galaxy) config param for Source Extraction in arcsec [default: 1.2]
     --detect_thresh FLOAT       The Source Extraction detection threshold [default: 1.5]
     --detect_minarea INT        The Source Extraction detection minimum area [default: 5]
 
