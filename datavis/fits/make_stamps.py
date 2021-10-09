@@ -19,8 +19,9 @@ def make_stamps(RA,DEC,fitsfiles_2Darray,output='stamp.png',labels=False,size=50
     ##################
     # Set up subplot #
     ##################
-    n_cols = np.shape(fitsfiles_2Darray)[0]
-    n_rows = np.shape(fitsfiles_2Darray)[1]
+    n_rows = np.shape(fitsfiles_2Darray)[0]
+    n_cols = np.shape(fitsfiles_2Darray)[1]
+    
 
     if axisticks == True:
         # Start figure with RA,DEC axis
@@ -42,7 +43,7 @@ def make_stamps(RA,DEC,fitsfiles_2Darray,output='stamp.png',labels=False,size=50
         for col in range(n_cols):
                 
             # Read in data, get cutout
-            cutout,cutout_h = create_cutout_centre(fitsfiles_2Darray[col][row],
+            cutout,cutout_h = create_cutout_centre(fitsfiles_2Darray[row][col],
                                             RA,DEC,size,verbose=debug,debug=debug)
             
             # imshow, with pixel value normalisation
@@ -54,7 +55,7 @@ def make_stamps(RA,DEC,fitsfiles_2Darray,output='stamp.png',labels=False,size=50
                 
             # labels
             if labels:
-                label=labels[col][row]
+                label=labels[row][col]
             else:
                 label=''
                 
@@ -90,5 +91,6 @@ def make_stamps(RA,DEC,fitsfiles_2Darray,output='stamp.png',labels=False,size=50
                     axs[row, col].scatter(X,Y,s=200,marker='x',color='green',alpha=0.2)
                     
     plt.savefig(output)
+    plt.close()
 
     return output
