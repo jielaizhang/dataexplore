@@ -13,7 +13,7 @@ from datavis.fits.create_cutouts import create_cutout_centre
 def make_stamps(RA,DEC,fitsfiles_2Darray,output='stamp.png',labels=False,size=50,debug=False,
                 axisticks=False,mark_target=False):
     '''fitsfiles_2Darray should be a 2D array that specifies the number of rows and columns in output stamps.
-    E.g. [[temp_1.fits,temp_2.fits],[sci_1.fits,sci2.fits],[sub_1.fits,sub_2.fits]]
+    E.g. [[temp_1.fits,temp_2.fits],[sci_1.fits,sci2.fits],[sub_1.fits,sub_2.fits]] gives 3 rows and 2 columns.
     '''
             
     ##################
