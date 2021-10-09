@@ -7,6 +7,9 @@ from astropy.visualization import ZScaleInterval
 from astropy.visualization import ImageNormalize
 
 
+from datavis.fits.create_cutouts import create_cutout_centre
+
+
 def make_stamps(RA,DEC,fitsfiles_2Darray,output='stamp.png',labels=False,size=50,debug=False,
                 axisticks=False,mark_target=False):
     '''fitsfiles_2Darray should be a 2D array that specifies the number of rows and columns in output stamps.
@@ -18,22 +21,17 @@ def make_stamps(RA,DEC,fitsfiles_2Darray,output='stamp.png',labels=False,size=50
     ##################
     n_cols = np.shape(fitsfiles_2Darray)[0]
     n_rows = np.shape(fitsfiles_2Darray)[1]
-    if debug:
-        print('n_cols, n_rows:',n_cols,n_rows)
 
     if axisticks == True:
-        # Get WCS onto axis
-        f   = fitsfiles_2Darray[0][0]
-        _,h = fits.getdata(f,header=True)
-        wcs = WCS(h)
-        (X, Y)       = wcs.wcs_world2pix(RA, DEC, 0)
-        X,Y          = [int(x) for x in [X,Y]]
-        wcs_cutout   = wcs[X-size:X+size,Y-size:Y+size] 
-        # start figure
+        # Start figure with RA,DEC axis
+        cutout,cutout_h = create_cutout_centre(fitsfiles_2Darray[0][0],RA,DEC,size,verbose=debug,debug=debug)
+        cutout_wcs = WCS(cutout_h)
         fig, axs = plt.subplots(n_rows, n_cols,figsize=(n_cols*5,n_rows*5),
-                                subplot_kw={'projection': wcs_cutout, 'label':"overlays"})
+                                subplot_kw={'projection': cutout_wcs, 'label':"overlays"})
+        if debug:
+            print(f"cutout shape: {np.shape(cutout)}")
     else:
-        # start figure
+        # start figure with pixel axis
         fig, axs = plt.subplots(n_rows, n_cols,figsize=(n_cols*5,n_rows*5))
     fig.subplots_adjust(left=None, bottom=None, right=1., top=None, wspace=None, hspace=None)
     
@@ -42,29 +40,18 @@ def make_stamps(RA,DEC,fitsfiles_2Darray,output='stamp.png',labels=False,size=50
     ##############################
     for row in range(n_rows):
         for col in range(n_cols):
-            if debug:
-                print(f"fitsfiles_2Darray[{col}][{row}] #[col][row]")
-                print(np.shape(axs))
                 
-            # Read in data
-            f   = fitsfiles_2Darray[col][row]
-            d,h = fits.getdata(f,header=True)
+            # Read in data, get cutout
+            cutout,cutout_h = create_cutout_centre(fitsfiles_2Darray[col][row],
+                                            RA,DEC,size,verbose=debug,debug=debug)
             
-            # Do cutout
-            wcs                          = WCS(h)
-            (X, Y)                       = wcs.wcs_world2pix(RA, DEC, 0)
-            X,Y                          = [int(x) for x in [X,Y]]
-            image_cutout                 = d[X-size:X+size,Y-size:Y+size]
-            wcs_cutout                   = wcs[X-size:X+size,Y-size:Y+size]
-            
-            # pixel value normalisation
-            norm = ImageNormalize(image_cutout, interval=ZScaleInterval(),stretch=LinearStretch())
-            
-            # imshow
+            # imshow, with pixel value normalisation
+            norm = ImageNormalize(cutout, interval=ZScaleInterval(),stretch=LinearStretch())
             if n_rows == 1 or n_cols ==1:
-                axs[max(row,col)].imshow(image_cutout, norm = norm, cmap='gray') 
+                axs[max(row,col)].imshow(cutout, norm = norm, cmap='gray') 
             else:
-                axs[row, col].imshow(image_cutout, norm = norm, cmap='gray') 
+                axs[row, col].imshow(cutout, norm = norm, cmap='gray') 
+                
             # labels
             if labels:
                 label=labels[col][row]
@@ -92,6 +79,15 @@ def make_stamps(RA,DEC,fitsfiles_2Darray,output='stamp.png',labels=False,size=50
                 else:
                     axs[row, col].set_axis_off()
                     axs[row, col].set_title(label, fontsize=10)
+                    
+            # mark target
+            if mark_target==True:
+                cutout_wcs = WCS(cutout_h)
+                (X, Y)     = cutout_wcs.wcs_world2pix(RA, DEC, 0)
+                if n_rows == 1 or n_cols ==1:
+                    axs[max(row,col)].scatter(X,Y,s=200,marker='x',color='green',alpha=0.2)
+                else:
+                    axs[row, col].scatter(X,Y,s=200,marker='x',color='green',alpha=0.2)
                     
     plt.savefig(output)
 
