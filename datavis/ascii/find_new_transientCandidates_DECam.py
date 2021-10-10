@@ -118,7 +118,7 @@ def find_new_transientCandidates_DECam(f_sub_cat, f_sci_cat, f_neg_cat, f_templ_
 
     # Round 2: for each science detection there is a positive detection associated
     if no_candidates == False:
-        if len(df_sciYes_posYes_sci) == 0:
+        if len(df_sciYes_posYes_sub) == 0:
             print('No subtraction sources were found to have a match in the science source list.')
             no_sciYes_posYes_candidates       = True
             no_sciYes_posYes_negNo_candidates = True
@@ -126,42 +126,42 @@ def find_new_transientCandidates_DECam(f_sub_cat, f_sci_cat, f_neg_cat, f_templ_
         else:        
             # Get sci/sub matched with no nearby neg
             radius_threshold = 4 * u.arcsec # XXX
-            df_sciYes_posYes_negNo_sci, df_sciYes_posYes_negNo_neg = match_catalogs_df( df_sciYes_posYes_sci, df_neg_select,
+            df_sciYes_posYes_negNo_sub, df_sciYes_posYes_negNo_neg = match_catalogs_df( df_sciYes_posYes_sub, df_neg_select,
                                                                                     radius_threshold=radius_threshold,find_close=False)
 
     # Round 3: for each sci/sub pair, there is no nearby negative detection
     if no_sciYes_posYes_candidates == False:
-        if len(df_sciYes_posYes_negNo_sci) == 0:
+        if len(df_sciYes_posYes_negNo_sub) == 0:
             print('No positive sources with matching subtraction sources with no nearby negative sources has been found.')
             no_sciYes_posYes_negNo_candidates = True    
             no_sciYes_posYes_negNo_templNo_candidates = True
         else:
             # Get sci/sub/no nearby neg with no templ
             radius_threshold = 1.0 * u.arcsec # XXX Seeing ~0.8-1.2 at DECam
-            df_sciYes_posYes_negNo_templNo_sci, df_sciYes_posYes_negNo_neg_templNo_templ = match_catalogs_df( df_sciYes_posYes_negNo_sci, df_templ_select,
+            df_sciYes_posYes_negNo_templNo_sub, df_sciYes_posYes_negNo_neg_templNo_templ = match_catalogs_df( df_sciYes_posYes_negNo_sub, df_templ_select,
                                                                                     radius_threshold=radius_threshold,find_close=False)
             
     # Round 4: for each sci/sub/no neg source, there is no associated source in template
     if no_sciYes_posYes_negNo_candidates == False:
-        if len(df_sciYes_posYes_negNo_templNo_sci) == 0:
+        if len(df_sciYes_posYes_negNo_templNo_sub) == 0:
             print('No pos sources with matching sub srcs with no nearby neg sources and no associated template source has been found.')
             no_sciYes_posYes_negNo_templNo_candidates = True
             
     if verbose:
         if no_sciYes_posYes_candidates == False:
-            print(f'Sources in SCI matched in POS SUB: {len(df_sciYes_posYes_sci)}')
+            print(f'Sources in SCI matched in POS SUB: {len(df_sciYes_posYes_sub)}')
         if no_sciYes_posYes_negNo_candidates == False:
-            print(f'Sources in SCI matched in POS SUB, then not matched in NEG: {len(df_sciYes_posYes_negNo_sci)}')
+            print(f'Sources in SCI matched in POS SUB, then not matched in NEG: {len(df_sciYes_posYes_negNo_sub)}')
         if no_sciYes_posYes_negNo_candidates == False:
-            print(f'Sources in SCI matched in POS SUB, then not matched in NEG, then not matched in template: {len(df_sciYes_posYes_negNo_templNo_sci)}')
+            print(f'Sources in SCI matched in POS SUB, then not matched in NEG, then not matched in template: {len(df_sciYes_posYes_negNo_templNo_sub)}')
 
     # ..............................................................
     # Make Region files of sources matched in Sci and Sub
 
     if no_sciYes_posYes_candidates == False:
         # Save region file.
-        Rs_sciYes_posYes = np.array(df_sciYes_posYes_sci['X_WORLD'])
-        Ds_sciYes_posYes = np.array(df_sciYes_posYes_sci['Y_WORLD'])
+        Rs_sciYes_posYes = np.array(df_sciYes_posYes_sub['X_WORLD'])
+        Ds_sciYes_posYes = np.array(df_sciYes_posYes_sub['Y_WORLD'])
         Sizes   = ["0.1'"]*len(Rs_sciYes_posYes)
         Shapes = ['circle']*len(Rs_sciYes_posYes)
         j2000s  = ['j2000;']*len(Rs_sciYes_posYes)
@@ -186,8 +186,8 @@ def find_new_transientCandidates_DECam(f_sub_cat, f_sci_cat, f_neg_cat, f_templ_
 
     if no_sciYes_posYes_negNo_candidates == False:
         # Save region file.
-        Rs_sciYes_posYes_negNo = np.array(df_sciYes_posYes_negNo_sci['X_WORLD'])
-        Ds_sciYes_posYes_negNo = np.array(df_sciYes_posYes_negNo_sci['Y_WORLD'])
+        Rs_sciYes_posYes_negNo = np.array(df_sciYes_posYes_negNo_sub['X_WORLD'])
+        Ds_sciYes_posYes_negNo = np.array(df_sciYes_posYes_negNo_sub['Y_WORLD'])
         Shapes  = ['panda']*len(Rs_sciYes_posYes_negNo)
         j2000s  = ['j2000;']*len(Rs_sciYes_posYes_negNo)
         Colors  = ['#color=yellow']*len(Rs_sciYes_posYes_negNo)
@@ -218,8 +218,8 @@ def find_new_transientCandidates_DECam(f_sub_cat, f_sci_cat, f_neg_cat, f_templ_
 
     if no_sciYes_posYes_negNo_templNo_candidates == False:
         # Save region file.
-        Rs_sciYes_posYes_negNo_templNo = np.array(df_sciYes_posYes_negNo_templNo_sci['X_WORLD'])
-        Ds_sciYes_posYes_negNo_templNo = np.array(df_sciYes_posYes_negNo_templNo_sci['Y_WORLD'])
+        Rs_sciYes_posYes_negNo_templNo = np.array(df_sciYes_posYes_negNo_templNo_sub['X_WORLD'])
+        Ds_sciYes_posYes_negNo_templNo = np.array(df_sciYes_posYes_negNo_templNo_sub['Y_WORLD'])
         Shapes  = ['panda']*len(Rs_sciYes_posYes_negNo_templNo)
         j2000s  = ['j2000;']*len(Rs_sciYes_posYes_negNo_templNo)
         Colors  = ['#color=magenta']*len(Rs_sciYes_posYes_negNo_templNo)
