@@ -7,7 +7,7 @@ Usage: subtract_image.py [-h] [-v] [--debug] [-s SAVELOC] [--badpixmapsave] [-o]
 
 Arguments:
     fitsfile1 (string)
-    fitsfile2 (string) output is fitsfile1-fitsfile2
+    fitsfile2 (string) output is fitsfile2-fitsfile1
 
 Options:
     -h, --help                              Show this screen
