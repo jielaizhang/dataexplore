@@ -2,7 +2,7 @@
 
 #!/usr/bin/env python
 
-""" determine_imageOverlap.py -- Determine the max number of pixels in AXIS1 and AXIS2 of the input fits images, print to screen unless suppressed. Plot up the footprint if -p option is on. Input two images should be of same  Right now, only takes in 2 fits images (YOLO).
+""" determine_imageOverlap.py -- Determine the max number of overlapping pixels in AXIS1 and AXIS2 of the input fits images, print to screen unless suppressed. Plot up the footprint if -p option is on. Right now, only takes in 2 fits images (YOLO).
 
 Usage: determine_imageOverlap.py [-h] [-v] [--debug] [-q] [-p SAVELOC] <fitsfile1> <fitsfile2>
 
@@ -185,8 +185,10 @@ def determine_imageOverlap( f1,f2,plotsave=False,
     # Get the average XLEN and YLEN for the two input image pixscales
     XLEN1,YLEN1 = get_imagesize(corner_RADECs_intersect,w1)
     XLEN2,YLEN2 = get_imagesize(corner_RADECs_intersect,w2)
-    XLEN        = int(np.average([XLEN1,XLEN2])) # auto floor
-    YLEN        = int(np.average([YLEN1,YLEN2])) # auto floor
+    #XLEN        = int(np.average([XLEN1,XLEN2])) # auto floor
+    #YLEN        = int(np.average([YLEN1,YLEN2])) # auto floor
+    XLEN        = min([XLEN1,XLEN2]) # Take the smallest
+    YLEN        = min([YLEN1,YLEN2]) # Take the smallest
 
     #  Print information if not quiet mode, or if verbose
     if not quietmode and not verbose:
