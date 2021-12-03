@@ -4,6 +4,8 @@
 
 """ determine_imageOverlap.py -- Determine the max number of overlapping pixels in AXIS1 and AXIS2 of the input fits images, print to screen unless suppressed. Plot up the footprint if -p option is on. Right now, only takes in 2 fits images (YOLO).
 
+Known error: if the WCS of the two input images are "flipped" in CDX_X, then the overlap area will not be calculated correctly. 
+
 Usage: determine_imageOverlap.py [-h] [-v] [--debug] [-q] [-p SAVELOC] <fitsfile1> <fitsfile2>
 
 Arguments:
@@ -136,7 +138,7 @@ def plot_polygonOverlap(poly1,poly2,quietmode=False):
     x_intersect,y2_intersect = poly_intersect.exterior.xy
 
     # Plot intersecting polygon
-    ax.plot(x_intersect,y2_intersect, color='red', alpha=0.7,
+    ax.plot(x_intersect,y2_intersect, color='red', alpha=0.4,
             linewidth=4, solid_capstyle='round', zorder=2) 
 
     # Save and print if not quietmode 
@@ -185,6 +187,9 @@ def determine_imageOverlap( f1,f2,plotsave=False,
     # Get the average XLEN and YLEN for the two input image pixscales
     XLEN1,YLEN1 = get_imagesize(corner_RADECs_intersect,w1)
     XLEN2,YLEN2 = get_imagesize(corner_RADECs_intersect,w2)
+    if verbose:
+        print(f'XLEN1,YLEN1: {XLEN1},{YLEN1}')
+        print(f'XLEN2,YLEN2: {XLEN2},{YLEN2}')
     #XLEN        = int(np.average([XLEN1,XLEN2])) # auto floor
     #YLEN        = int(np.average([YLEN1,YLEN2])) # auto floor
     XLEN        = min([XLEN1,XLEN2]) # Take the smallest
