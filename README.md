@@ -31,3 +31,5 @@ Given two images with overlapping field of view, and comparible (but not identic
 3. Perform image subtraction of two aligned images using dataexplore/datavis/subtract_image.py (`python subtract_image.py` -h for instructions)
 
 Required software for above to work: SWarp (https://www.astromatic.net/software/swarp/), Source Extractor (https://www.astromatic.net/software/sextractor/), High Order Transform of Psf ANd Template Subtraction (https://github.com/acbecker/hotpants)
+
+
