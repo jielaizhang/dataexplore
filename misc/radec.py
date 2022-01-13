@@ -1,14 +1,11 @@
-#!/usr/bin/python
-
 #!/usr/bin/env python
 
 """ -- 
-Usage: radec.py [-h] [-v] [--debug] [-q] (sexagesimal2deg | deg2sexagecimal) <RA> <DEC>
+Usage: radec.py [-h] [-v] [--debug] [-q] (sexa2deci | deci2sexa ) <RADEC>
 
 Arguments:
-    blah (string)
-        Info on blah
-
+    RA,DEC (string)
+        E.g. 20:11:01,-3:11:01 or 1.23234,3.21
 Options:
     -h, --help                              Show this screen
     -v, --verbose                           Show extra information [default: False]   
@@ -17,11 +14,8 @@ Options:
 
 Examples: 
 Bash:
-    radec.py sexagesimal2deg 20:11:01 -70:21:12
-    radec.py sexagesimal2deg 20:11 -70:21
-    radec.py sexagesimal2deg 20:11:01 70:21
-    radec.py deg2sexagecimal 150.1 -70.5
-    radec.py deg2sexagecimal 150.1 70.5
+    python /Users/jielaizhang/src/dataexplore/misc/radec.py deci2sexa 495.7592,-3.0339
+    python /Users/jielaizhang/src/dataexplore/misc/radec.py sexa2deci 33:3:2.2,-3:2:2.2
 Python:
     from dataexplore.misc.radec import sexagesimal2deg
     sexagesimal2deg('20:11:01', '-70:21:12')
@@ -43,8 +37,6 @@ import astropy.io.fits as fits
 import numpy as np
 import sys, os, ntpath
 from pathlib import Path
-
-import copy
 
 __author__      = "Jielai Zhang"
 __license__     = "MIT"
@@ -88,7 +80,15 @@ def clearit(fnames,debugmode=False):
 #################### other RADEC Functions ###################
 ##############################################################
 
+def minussignornot(x):
+    if x >= 0:
+        sign = ''
+    if x < 0:
+        sign = '-'
+    return sign
+
 def hms2deg(ras):
+    '''hms format: e.g. 12:23:34.32'''
     ras_deg = []
     for ra in ras:
         try:
@@ -101,6 +101,7 @@ def hms2deg(ras):
     return ras_deg
 
 def dms2deg(decs):
+    '''dms format: e.g. 12:23:34.32 or -12:23:34.32 '''
     decs_deg = []
     for dec in decs:
         try:
@@ -116,50 +117,44 @@ def dms2deg(decs):
         decs_deg.append(dec_deg)
     return decs_deg
 
-def sexagesimal2degs(RADECS,verbose=False,debugmode=False,quietmode=False):
-    print('Not implemented yet')
-    return None
+def deg2dms(decs):
+    decs_dms = []
+    for dec in decs:
+        dec    = float(dec)
+        pmsign = minussignornot(dec)
+        dec  = abs(dec)
+        d  = np.floor(dec)
+        m  = np.floor((dec-d)*60.)
+        s  = ((dec-d)*60.-m)*60.
+        dms = f'{pmsign}{int(d)}:{int(m)}:{s}'
+        decs_dms.append(dms)
+    return decs_dms
 
-def sexi2deci(RA,dec):
-    # Not used
-    # Convert sexigesimal string coords to decimal floats
-    #RAmax_deci,decmax_deci  = sexi2deci(RAmax,decmax)
-    #RAmin_deci,decmin_deci  = sexi2deci(RAmin,decmin)
-
-    # Calculate RA in decimal format
-    RA_hr   = float(RA.split(':')[0])
-    RA_min  = float(RA.split(':')[1])
-    RA_sec  = float(RA.split(':')[2])
-    RA_deci = (RA_hr + RA_min/60.0 + RA_sec/60.0/60.0)*15 
-
-    # Calculate dec in decimal format
-    dec_deg = float(dec.split(':')[0])
-    dec_min = float(dec.split(':')[1])
-    dec_sec = float(dec.split(':')[2])
-
-    # Take into account if dec is neg or pos
-    dec_sign = numpy.sign(dec_deg)
-    if dec_sign > 0:
-        dec_deci = dec_deg + dec_min/60.0 + dec_sec/60.0/60.0
-    else:
-        dec_deci = dec_deg - dec_min/60.0 - dec_sec/60.0/60.0
-
-    return RA_deci, dec_deci
-
-def deg2sexagecimals(RADECSverbose=False,debugmode=False,quietmode=False):
-    print('Not implemented yet')
-    return None
+def deg2hms(ras):
+    ras_hms = []
+    for ra in ras:
+        ra = np.float(ra)
+        h  = np.floor(ra/15)
+        m  = np.floor( (ra/15 - h)*60. )
+        s  = ((ra/15 - h)*60. -m)*60. 
+        hms = f'{int(h)}:{int(m)}:{s}'
+        ras_hms.append(hms)
+    return ras_hms
 
 ##############################################################
 ####################### Main Functions #######################
 ##############################################################
 
 def sexagesimal2deg(RA,DEC,verbose=False,debugmode=False,quietmode=False):
-    print('Not implemented yet')
+    [ra]  = hms2deg([RA])
+    [dec] = dms2deg([DEC])
+    print(ra,dec)
     return None
 
 def deg2sexagecimal(RA,DEC,verbose=False,debugmode=False,quietmode=False):
-    print('Not implemented yet')
+    [ra]  = deg2hms([RA])
+    [dec] = deg2dms([DEC])
+    print(ra,dec)
     return None
 
 ############################################################################
@@ -175,13 +170,13 @@ if __name__ == "__main__":
     quietmode       = arguments['--quietmode']
     if debugmode:
         print(arguments)   
-    input_deg          = arguments['deg2sexagecimal']
-    input_sexagecimal  = arguments['sexagesimal2deg']
-    RA                 = arguments['<RA>']
-    DEC                = arguments['<DEC>']
-
-    if input_deg:
-        _ = sexagesimal2deg(RA,DEC,verbose=verbose,debugmode=debugmode,quietmode=quietmode)
+    input_deg          = arguments['deci2sexa']
+    input_sexagecimal  = arguments['sexa2deci']
+    RADEC              = arguments['<RADEC>']
+    RA, DEC = RADEC.split(',')
 
     if input_sexagecimal:
+        _ = sexagesimal2deg(RA,DEC,verbose=verbose,debugmode=debugmode,quietmode=quietmode)
+
+    if input_deg:
         _ = deg2sexagecimal(RA,DEC,verbose=verbose,debugmode=debugmode,quietmode=quietmode)
