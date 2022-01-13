@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
-""" -- 
+""" radec.py -- convert between sexagecimal and decimal RA and DEC coordinates. Suggest add this to alias: 
+alias sexa2deci='python /Users/jielaizhang/src/dataexplore/misc/radec.py sexa2deci '
+alias deci2sexa='python /Users/jielaizhang/src/dataexplore/misc/radec.py deci2sexa '
+
 Usage: radec.py [-h] [-v] [--debug] [-q] (sexa2deci | deci2sexa ) <RADEC>
 
 Arguments:
@@ -28,9 +31,11 @@ Python:
     sexagesimal2degs([[150.1, 70.5],
                       [150.1, 70.5]])
 
-    from misc.radec import hms2deg, dms2deg
+    from misc.radec import hms2deg, dms2deg, deg2hms, deg2dms
     hms2deg(['20:10','4:34:23'])
     dms2deg(['-70:10','-4:34:23'])
+    deg2hms([3.2,4.2])
+    deg2dms([3.2,3.2])
 """
 import docopt
 import astropy.io.fits as fits
