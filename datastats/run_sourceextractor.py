@@ -21,7 +21,7 @@ Options:
 
 Examples:
     python run_sourceextractor.py *fits -o ./outfile.txt --savecats ../cats
-    from datastats.run_sourceextractor import run_sourceextractor
+    from datastats.run_sourceextractor import run_sourceExtractor
         cats = run_sourceextractor(fitsfiles,
                                     extractorloc='/opt/local/bin/source-extractor',
                                     psfexloc='/opt/local/bin/psfex',
