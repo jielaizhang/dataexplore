@@ -165,6 +165,8 @@ def run_sourceExtractor(fitsfiles,spreadmodel=False,
                             f'-STARNNW_NAME {nnw_path} -PIXEL_SCALE 0 -MAG_ZEROPOINT 25.0 '\
                             f'-VERBOSE_TYPE {VERBOSE_TYPE} '\
                             f'-SEEING_FWHM {fwhm} -DETECT_MINAREA {detect_minarea} -DETECT_THRESH {detect_thresh} '\
+                            f'-CHECKIMAGE_TYPE SEGMENTATION,APERTURES -CHECKIMAGE_NAME seg.fits,aper.fits '\
+                            f'-PHOT_APERTURES 8 '\
                             f'{f}'
             if verbose:
                 print('Currently running source extractor to output required catalog...')
