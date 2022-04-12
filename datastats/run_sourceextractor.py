@@ -13,7 +13,7 @@ Options:
     -s LOC, --sextractor LOC    Location of source extractor [default: /opt/local/bin/source-extractor] 
     -p LOC, --psfex LOC         Location of PSFEx [default: /opt/local/bin/psfex]
     --spreadmodel               If on, spread_model, mag_model, magerr_model will be in output catalog [default: False]
-    --savecats LOC              Output cat files to this directory. If not input, outputs to same directory as input file.
+    --savecats LOC              Output cat files to this directory. If not input, outputs to current directory with input file name.cat.
     --catending STRING          Output cats for each file.fits will be file_STRING.cat, if empty, output will be file.cat.
     --fwhm FLOAT                The SEEING_FWHM (for star/galaxy) config param for Source Extraction in arcsec [default: 1.2]
     --detect_thresh FLOAT       The Source Extraction detection threshold [default: 1.5]
